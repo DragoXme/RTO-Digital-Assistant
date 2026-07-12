@@ -387,7 +387,14 @@ function toggleVoiceInput() {
             
             recognition.onstart = () => {
                 indicatorText.textContent = uiStrings[currentLanguage].listening;
-                startAudioVisualization(); // Start real-time audio visualization
+                
+                // Avoid audio hardware conflicts on mobile (Android blocks parallel mic streams)
+                const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                if (!isMobile) {
+                    startAudioVisualization();
+                } else {
+                    restoreFallbackWaveAnimation();
+                }
             };
             
             recognition.onresult = (event) => {
