@@ -1134,35 +1134,68 @@ body {
     }
 
     .chat-input-container {
-        padding: 12px 16px 16px 16px;
+        padding: 8px 16px 28px 16px; /* Raised off the bottom edge */
+        background: linear-gradient(180deg, rgba(241, 245, 249, 0) 0%, var(--bg-app) 25%, var(--bg-app) 100%);
+        border-top: none;
+    }
+    
+    .theme-dark .chat-input-container {
+        background: linear-gradient(180deg, rgba(11, 15, 25, 0) 0%, var(--bg-app) 25%, var(--bg-app) 100%);
+    }
+    
+    .theme-contrast .chat-input-container {
+        background: #000;
+    }
+
+    .input-wrapper {
+        background-color: var(--bg-card) !important; /* Stand out as a card floating over bg-app */
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12); /* Drop shadow for premium float */
+        border-color: var(--border-color);
+        padding: 10px 14px 10px 22px; /* Bigger vertical padding */
+    }
+
+    .chat-input {
+        font-size: 1.15rem; /* Larger read size */
+    }
+
+    .btn-action {
+        width: 44px; /* Larger tap targets */
+        height: 44px;
+    }
+
+    .btn-voice {
+        font-size: 1.25rem;
+    }
+
+    .btn-send {
+        font-size: 1.15rem;
     }
 }
 
 @media (max-width: 480px) {
     .input-row {
-        gap: 8px;
+        gap: 6px;
     }
     
     .input-wrapper {
-        padding: 4px 10px 4px 14px;
-        gap: 8px;
+        padding: 8px 8px 8px 16px; /* Slightly tighter horizontally for narrow screens */
+        gap: 6px;
     }
     
     .chat-input {
-        padding: 6px 0;
-        font-size: 1rem;
+        font-size: 1.1rem;
     }
 
     .btn-action {
-        width: 34px;
-        height: 34px;
+        width: 40px;
+        height: 40px;
     }
 
     .btn-voice {
-        font-size: 1.05rem;
+        font-size: 1.15rem;
     }
 
     .btn-send {
-        font-size: 0.95rem;
+        font-size: 1.05rem;
     }
 }

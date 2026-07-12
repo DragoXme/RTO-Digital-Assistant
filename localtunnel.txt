@@ -1,8 +1,1 @@
-your url is: https://brave-papers-kneel.loca.lt
-npm notice
-npm notice New minor version of npm available! 11.9.0 -> 11.18.0
-npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.18.0
-npm notice To update run: npm install -g npm@11.18.0
-npm notice
-
-C:\Users\ssp54\OneDrive - UPES\College\Samarth Internship\RTO Digital Assistant>
+your url is: https://fluffy-turtles-cheat.loca.lt
