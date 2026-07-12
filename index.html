@@ -20,7 +20,18 @@
     <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-<body class="theme-light text-md">
+<body class="text-md">
+    <script>
+        (function() {
+            const savedTheme = localStorage.getItem('rto-user-theme') || 'system';
+            let resolvedTheme = savedTheme;
+            if (savedTheme === 'system') {
+                const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+                resolvedTheme = prefersDark ? 'dark' : 'light';
+            }
+            document.body.classList.add('theme-' + resolvedTheme);
+        })();
+    </script>
 
     <!-- Accessible Skip to Content Link -->
     <a href="#chat-container" class="skip-link">Skip to Chat Assistant</a>
@@ -274,10 +285,6 @@
             </section>
         </main>
 
-        <!-- Footer -->
-        <footer class="app-footer">
-            <p>&copy; 2026 RTO Digital Assistant. This is an interactive frontend prototype built for the evaluator presentation.</p>
-        </footer>
     </div>
 
     <!-- Custom Script -->
