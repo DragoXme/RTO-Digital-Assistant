@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RTO Digital Assistant</title>
+    
+    <!-- Meta tags for SEO & Mobile -->
+    <meta name="description" content="Official interactive digital assistant mockup for RTO Digital Assistant. Built for high accessibility, readability, and ease of use.">
+    <meta name="keywords" content="RTO Digital Assistant, Driving License, Vehicle Registration, Chatbot, Accessibility">
+    <meta name="author" content="RTO Digital Assistant Team">
+    
+    <!-- Fonts & Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="style.css">
+</head>
+<body class="theme-light text-md">
+
+    <!-- Accessible Skip to Content Link -->
+    <a href="#chat-container" class="skip-link">Skip to Chat Assistant</a>
+
+    <!-- App Wrapper -->
+    <div class="app-wrapper">
+        
+        <!-- Header Section -->
+        <header class="app-header" role="banner">
+            <div class="header-main">
+                <!-- Hamburger Button (Mobile Only) -->
+                <button id="menu-toggle" class="btn-menu-toggle" aria-label="Open menu drawer" onclick="toggleSidebar(true)">
+                    <i class="fa-solid fa-bars"></i>
+                </button>
+
+                <div class="logo-area">
+                    <div class="assistant-logo" aria-hidden="true">
+                        <!-- High Fidelity Visor Robot SVG Logo -->
+                        <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                            <defs>
+                                <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                                    <stop offset="0%" stop-color="#2563eb" />
+                                    <stop offset="100%" stop-color="#1d4ed8" />
+                                </linearGradient>
+                            </defs>
+                            <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
+                            <!-- Headphone band -->
+                            <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
+                            <!-- Robot Body/Visor Box -->
+                            <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
+                            <rect x="34" y="44" width="32" height="12" rx="6" fill="#1e293b" />
+                            <!-- Glowing Visor Eyes -->
+                            <circle cx="44" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                            <circle cx="56" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                            <!-- Ear cups -->
+                            <rect x="23" y="43" width="7" height="14" rx="3" fill="white" />
+                            <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
+                        </svg>
+                    </div>
+                    <div class="brand-text">
+                        <h1 class="app-title">RTO Digital Assistant</h1>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Workspace -->
+        <main class="main-container" id="chat-container">
+            
+            <!-- Sidebar Drawer Overlay (Mobile Only) -->
+            <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
+
+            <!-- Sidebar Drawer: Helpful Information, Links & Settings -->
+            <aside class="info-sidebar" id="info-sidebar" aria-label="RTO Settings and Information Panel">
+                <!-- Sidebar Header (Mobile Close Button) -->
+                <div class="sidebar-header">
+                    <div class="sidebar-brand">
+                        <!-- Same SVG Logo inside Sidebar Brand -->
+                        <div class="sidebar-logo-wrapper">
+                            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
+                                <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
+                                <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
+                                <rect x="34" y="44" width="32" height="12" rx="6" fill="#1e293b" />
+                                <circle cx="44" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                                <circle cx="56" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                                <rect x="23" y="43" width="7" height="14" rx="3" fill="white" />
+                                <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
+                            </svg>
+                        </div>
+                        <span>Menu & Settings</span>
+                    </div>
+                    <button class="close-sidebar-btn" id="close-sidebar" aria-label="Close menu drawer" onclick="toggleSidebar(false)">
+                        &times;
+                    </button>
+                </div>
+
+                <!-- Section 1: Accessibility Controls -->
+                <div class="sidebar-section settings-section">
+                    <h2 class="sidebar-heading"><i class="fa-solid fa-sliders"></i> Display Settings</h2>
+                    
+                    <div class="settings-list">
+                        <!-- Language Toggle -->
+                        <div class="setting-item">
+                            <span class="setting-label">Language:</span>
+                            <div class="control-group language-toggle">
+                                <button id="lang-en" class="btn-toggle active" aria-pressed="true" onclick="setLanguage('en')">English</button>
+                                <button id="lang-hi" class="btn-toggle" aria-pressed="false" onclick="setLanguage('hi')">हिन्दी</button>
+                            </div>
+                        </div>
+
+                        <!-- Text Size Adjuster -->
+                        <div class="setting-item">
+                            <span class="setting-label">Text Size:</span>
+                            <div class="control-group font-sizer" aria-label="Adjust Text Size">
+                                <button id="font-decrease" class="btn-circle" aria-label="Decrease text size" onclick="adjustTextSize('down')">A-</button>
+                                <button id="font-reset" class="btn-circle active" aria-label="Reset text size" onclick="adjustTextSize('reset')">A</button>
+                                <button id="font-increase" class="btn-circle" aria-label="Increase text size" onclick="adjustTextSize('up')">A+</button>
+                            </div>
+                        </div>
+
+                        <!-- Theme Toggle -->
+                        <div class="setting-item">
+                            <span class="setting-label">Theme:</span>
+                            <div class="control-group theme-selector" aria-label="Select Theme">
+                                <button id="theme-system" class="btn-theme" aria-label="System Theme" title="System Theme" onclick="setTheme('system')">
+                                    <i class="fa-solid fa-desktop"></i>
+                                </button>
+                                <button id="theme-light" class="btn-theme" aria-label="Light Mode" title="Light Mode" onclick="setTheme('light')">
+                                    <i class="fa-solid fa-sun"></i>
+                                </button>
+                                <button id="theme-dark" class="btn-theme" aria-label="Dark Mode" title="Dark Mode" onclick="setTheme('dark')">
+                                    <i class="fa-solid fa-moon"></i>
+                                </button>
+                                <button id="theme-contrast" class="btn-theme" aria-label="High Contrast Mode" title="High Contrast Mode" onclick="setTheme('contrast')">
+                                    <i class="fa-solid fa-circle-half-stroke"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Section 2: Common Help Topics -->
+                <div class="sidebar-section">
+                    <h2 class="sidebar-heading"><i class="fa-solid fa-circle-question"></i> Common Help Topics</h2>
+                    <ul class="help-links">
+                        <li>
+                            <button class="help-link-btn" onclick="sendQuickQuery('apply-license')">
+                                <i class="fa-solid fa-id-card icon-dl"></i>
+                                <div class="help-link-text">
+                                    <span class="topic-title" data-en="Apply for Driving License" data-hi="ड्राइविंग लाइसेंस के लिए आवेदन करें">Apply for Driving License</span>
+                                    <span class="topic-desc" data-en="Step-by-step learning & permanent license guide" data-hi="लर्निंग और स्थायी लाइसेंस गाइड">Step-by-step learning & permanent license guide</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="help-link-btn" onclick="sendQuickQuery('vehicle-rc')">
+                                <i class="fa-solid fa-car icon-rc"></i>
+                                <div class="help-link-text">
+                                    <span class="topic-title" data-en="Vehicle Registration (RC)" data-hi="वाहन पंजीकरण (आरसी)">Vehicle Registration (RC)</span>
+                                    <span class="topic-desc" data-en="Check owner details, transfer of ownership" data-hi="मालिक का विवरण, स्वामित्व स्थानांतरण जांचें">Check owner details, transfer of ownership</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="help-link-btn" onclick="sendQuickQuery('pay-challan')">
+                                <i class="fa-solid fa-file-invoice-dollar icon-challan"></i>
+                                <div class="help-link-text">
+                                    <span class="topic-title" data-en="Pay e-Challan" data-hi="ई-चालान का भुगतान करें">Pay e-Challan</span>
+                                    <span class="topic-desc" data-en="Pay traffic fines and view pending tickets" data-hi="यातायात जुर्माना भरें और लंबित टिकट देखें">Pay traffic fines and view pending tickets</span>
+                                </div>
+                            </button>
+                        </li>
+                        <li>
+                            <button class="help-link-btn" onclick="sendQuickQuery('book-slot')">
+                                <i class="fa-solid fa-calendar-check icon-slot"></i>
+                                <div class="help-link-text">
+                                    <span class="topic-title" data-en="Book Driving Test Slot" data-hi="ड्राइविंग टेस्ट स्लॉट बुक करें">Book Driving Test Slot</span>
+                                    <span class="topic-desc" data-en="Schedule appointments at Uttarakhand RTO" data-hi="उत्तराखंड आरटीओ में स्लॉट बुक करें">Schedule appointments at Uttarakhand RTO</span>
+                                </div>
+                            </button>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- Section 3: Help & Support -->
+                <div class="sidebar-section contact-card">
+                    <h2 class="sidebar-heading">Support Helpline</h2>
+                    <a href="tel:01352743432" class="phone-number">
+                        <i class="fa-solid fa-phone-volume"></i> 0135-2743432
+                    </a>
+                    <p class="working-hours" data-en="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)" data-hi="कार्य समय: सुबह 10:00 - शाम 5:00 (सोम-शनि)">Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)</p>
+                    <div class="official-link-wrapper">
+                        <a href="https://transport.uk.gov.in/" target="_blank" rel="noopener" class="official-link">
+                            <i class="fa-solid fa-up-right-from-square"></i> Visit Transport Website
+                        </a>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Chatbot Workspace (Chat First on Mobile) -->
+            <section class="chat-section" aria-label="Interactive Chat Window">
+                <!-- Chat Message Feed -->
+                <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
+                    
+                    <!-- Welcome/Greeting Message (Updated Visor Robot Logo) -->
+                    <div class="message assistant">
+                        <div class="avatar" aria-hidden="true">
+                            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                                <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
+                                <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
+                                <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
+                                <rect x="34" y="44" width="32" height="12" rx="6" fill="#1e293b" />
+                                <circle cx="44" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                                <circle cx="56" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                                <rect x="23" y="43" width="7" height="14" rx="3" fill="white" />
+                                <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
+                            </svg>
+                        </div>
+                        <div class="message-wrapper">
+                            <div class="message-content">
+                                <div class="message-text" id="welcome-msg">
+                                    Namaste! Welcome to the RTO Digital Assistant. I am designed to help citizens of Uttarakhand find RTO information easily.
+                                    <br><br>
+                                    Feel free to ask me anything about <strong>Driving Licenses</strong>, <strong>Vehicle RC</strong>, or <strong>Challans</strong>.
+                                </div>
+                            </div>
+                            <div class="message-actions">
+                                <button class="btn-speak" onclick="speakMessage(this)" aria-label="Read this message aloud">
+                                    <i class="fa-solid fa-volume-high"></i> Speak
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Chat Input Controls -->
+                <div class="chat-input-container">
+                    <form id="chat-form" onsubmit="handleFormSubmit(event)" autocomplete="off">
+                        <div class="input-row">
+                            <!-- Unified Input & Actions Capsule -->
+                            <div class="input-wrapper" id="input-wrapper">
+                                <!-- Text Input Box -->
+                                <input type="text" id="user-input" class="chat-input" placeholder="Type your message here..." aria-label="Type your message here" required>
+                                
+                                <!-- Integrated Audio Soundwaves (Gemini-style, hidden by default) -->
+                                <div id="voice-waves" class="voice-waves" style="display: none;">
+                                    <div class="wave-bar bar-1 animated" id="wave-bar-1"></div>
+                                    <div class="wave-bar bar-2 animated" id="wave-bar-2"></div>
+                                    <div class="wave-bar bar-3 animated" id="wave-bar-3"></div>
+                                    <span class="voice-text-indicator" id="voice-text-indicator">Listening...</span>
+                                </div>
+
+                                <!-- Action Buttons on the Right Side of the Input bar -->
+                                <div class="input-actions">
+                                    <!-- Microphone Button -->
+                                    <button type="button" id="voice-btn" class="btn-action btn-voice" title="Speak to assistant" aria-label="Use voice-to-text" onclick="toggleVoiceInput()">
+                                        <i class="fa-solid fa-microphone"></i>
+                                    </button>
+                                    
+                                    <!-- Modernized Send Button -->
+                                    <button type="submit" id="send-btn" class="btn-action btn-send" aria-label="Send message">
+                                        <i class="fa-solid fa-arrow-up"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="app-footer">
+            <p>&copy; 2026 RTO Digital Assistant. This is an interactive frontend prototype built for the evaluator presentation.</p>
+        </footer>
+    </div>
+
+    <!-- Custom Script -->
+    <script src="script.js"></script>
+</body>
+</html>
