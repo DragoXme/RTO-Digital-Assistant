@@ -207,22 +207,12 @@ def chat():
                 for model_name in CHAT_MODELS:
                     try:
                         print(f"Attempting to query chat model: models/{model_name}...")
-                        try:
-                            model = genai.GenerativeModel(
-                                model_name=f"models/{model_name}",
-                                system_instruction=system_instruction,
-                                tools=[{"google_search_retrieval": {}}]
-                            )
-                            chat = model.start_chat(history=formatted_history)
-                            response = chat.send_message(query_text, stream=True)
-                        except Exception as search_err:
-                            print(f"Google Search grounding unsupported or rate-limited on models/{model_name}: {search_err}. Falling back to general generation...")
-                            model = genai.GenerativeModel(
-                                model_name=f"models/{model_name}",
-                                system_instruction=system_instruction
-                            )
-                            chat = model.start_chat(history=formatted_history)
-                            response = chat.send_message(query_text, stream=True)
+                        model = genai.GenerativeModel(
+                            model_name=f"models/{model_name}",
+                            system_instruction=system_instruction
+                        )
+                        chat = model.start_chat(history=formatted_history)
+                        response = chat.send_message(query_text, stream=True)
                         
                         # Peek at the first chunk to ensure connection/quota success
                         response_iterator = iter(response)
