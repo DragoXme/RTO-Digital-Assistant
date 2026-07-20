@@ -1,0 +1,31 @@
+Integrated e-Challan System: Uttarakhand RTO and Traffic Police utilize an integrated digital e-Challan system. Violations caught by traffic cameras or speed guns are automatically logged, and a digital challan notification is sent to the registered owner's mobile number via SMS.
+
+How to Check and Pay Challan Online: Pending traffic challans in Uttarakhand can be checked and paid online using the official government Parivahan e-Challan portal (echallan.parivahan.gov.in). Users can search using their Vehicle Number, Driving License (DL) Number, or Challan Number. Payments can be made securely online via net banking, credit/debit cards, or UPI.
+
+How to Check and Pay Challan Offline: Visit the Dehradun Traffic Police Headquarters at Subhash Road (near the RTO office) or the Challan Section located in Room 14 at RTO Dehradun. Show the challan SMS or your vehicle registration number at the e-challan helpdesk. The officer will verify the pending amount on the computer. You can pay the fine in cash directly to the authorized traffic police officer and obtain a physical stamp-signed payment receipt.
+
+General Penalty for Traffic Violations: Under the Motor Vehicles Act, the fine for first-time general violations of traffic rules and signals is Rs. 500, which can go up to Rs. 1,500 for subsequent violations.
+
+Driving without a Valid License Penalty: Driving a motor vehicle without holding a valid Driving License is a severe offense. In Uttarakhand, the fine for driving without a license is Rs. 5,000 for the first offense.
+
+Driving without Insurance Penalty: Driving a vehicle without a valid third-party motor insurance certificate is illegal. The fine is Rs. 2,000 for the first offense and Rs. 4,000 for subsequent offenses.
+
+Dangerous or Rash Driving Penalty: Dangerous, rash, or negligent driving that threatens public safety is penalized. The fine for dangerous driving is Rs. 1,000 for the first offense, and up to Rs. 5,000 for subsequent offenses.
+
+Using Mobile Phone while Driving Penalty: Using a handheld mobile device while driving or riding a vehicle is prohibited. The penalty is Rs. 1,000 for the first offense and up to Rs. 5,000 for subsequent offenses.
+
+Riding without a Helmet Penalty: Riding a two-wheeler without a helmet or wearing an unstrapped helmet is penalized with a fine of Rs. 1,000. Additionally, the driver's license is subject to suspension for up to 3 months.
+
+Driving without a Seat Belt Penalty: Driving a four-wheeler without wearing a seat belt or allowing passengers to travel without seat belts is penalized with a fine of Rs. 1,000.
+
+Triple Riding on Two-Wheeler Penalty: Carrying more than two persons (driver + pillion) on a motorcycle or scooter is illegal. The fine for triple riding is Rs. 500 for the first offense and Rs. 1,500 for subsequent offenses.
+
+Driving without Number Plate Penalty: Driving a vehicle without a valid registration number plate or using an unreadable/fancy plate is prohibited. The fine is Rs. 500 for the first offense and Rs. 1,500 for subsequent offenses.
+
+Overspeeding Penalty rates: Exceeding speed limits in Uttarakhand attracts a fine of Rs. 1,000 for Light Motor Vehicles (cars) and Rs. 2,000 for medium or heavy passenger/goods vehicles.
+
+Blocking Emergency Vehicles Penalty: Not giving way or blocking emergency vehicles like ambulances, fire engines, or police cars is a serious offense. The fine for blocking emergency vehicles is up to Rs. 10,000.
+
+Drunk Driving Penalty: Driving a vehicle under the influence of alcohol or drugs exceeding the permissible limit (30 mg per 100 ml of blood) is a major offense. The penalty is up to Rs. 10,000 or imprisonment up to 6 months.
+
+Disputing a Challan and Court Referrals: If a traffic challan is not paid online within the stipulated grace period (usually 60 days), it is forwarded to the local traffic court. Once forwarded, the offender must resolve the challan by attending the court or paying it via the Virtual Court portal (vcourts.gov.in) if applicable.

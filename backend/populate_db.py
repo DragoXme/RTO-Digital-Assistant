@@ -1,0 +1,105 @@
+import os
+import glob
+import chromadb
+from chromadb.utils import embedding_functions
+
+def populate_database():
+    # 1. Resolve paths relative to this script's location for safety and correctness
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    db_path = os.path.join(script_dir, "rto_vector_db")
+    docs_dir = os.path.join(script_dir, "rto_docs")
+    
+    print(f"Connecting to database at: {db_path}")
+    chroma_client = chromadb.PersistentClient(path=db_path)
+    
+    # 2. Get the default embedding function
+    default_ef = embedding_functions.DefaultEmbeddingFunction()
+    
+    # 3. Create or get the collection matching app.py
+    collection = chroma_client.get_or_create_collection(
+        name="rto_rules", 
+        embedding_function=default_ef
+    )
+    
+    documents = []
+    metadatas = []
+    ids = []
+    
+    # 4. Check if there are text files (.txt or .md) in the rto_docs directory
+    text_files = glob.glob(os.path.join(docs_dir, "*.txt")) + glob.glob(os.path.join(docs_dir, "*.md"))
+    
+    if text_files:
+        print(f"Found {len(text_files)} documentation files in {docs_dir}:")
+        for filepath in text_files:
+            filename = os.path.basename(filepath)
+            print(f"  - Reading and chunking {filename}...")
+            
+            try:
+                with open(filepath, "r", encoding="utf-8") as f:
+                    content = f.read()
+                
+                # Split content by double newlines to segment it into paragraphs
+                chunks = [c.strip() for c in content.split("\n\n") if c.strip()]
+                
+                # Fallback to single line split if double newline chunking yields a single block
+                if len(chunks) <= 1:
+                    chunks = [c.strip() for c in content.split("\n") if len(c.strip()) > 30]
+                
+                for idx, chunk in enumerate(chunks):
+                    documents.append(chunk)
+                    metadatas.append({"source": filename, "chunk_index": idx})
+                    # Create a safe unique ID
+                    safe_name = "".join([c if c.isalnum() else "_" for c in filename])
+                    ids.append(f"file_{safe_name}_{idx}")
+            except Exception as e:
+                print(f"  Error reading {filename}: {e}")
+    else:
+        print(f"\nNo text files (.txt or .md) found in {docs_dir}.")
+        print("Falling back to populating default RTO rules list...")
+        
+        documents = [
+            # --- License Topics ---
+            "Learner's License (LL) fee in Uttarakhand is Rs. 150 for test and Rs. 150 for issuance. Total fee is Rs. 300.",
+            "Permanent Driving License (DL) fee is Rs. 200 for test and Rs. 200 for issuance. Total fee is Rs. 400. Driving test is mandatory.",
+            "To apply for a Learner's License in Uttarakhand, you must submit Form 1 (medical self-declaration), Form 2 (application), Address Proof (Aadhaar, Passport), and Age Proof (10th marksheet, birth certificate). Minimum age is 18 years for gear vehicles, and 16 years for gearless up to 50cc.",
+            "Driving License renewal must be done within 1 year before or after expiry. Fee is Rs. 200 plus Rs. 200 for smart card. Total Rs. 400.",
+            
+            # --- Registration Certificate (RC) ---
+            "Temporary vehicle registration is valid for 1 month only and cannot be renewed except under special circumstances. Fee is Rs. 100.",
+            "Permanent RC renewal (for vehicles older than 15 years) fee is Rs. 600 for cars and Rs. 300 for two-wheelers. Renewal is valid for 5 years.",
+            "Transfer of vehicle ownership (RC Transfer) requires Form 29 and 30, along with the Original RC, Insurance, Pollution Under Control (PUC) certificate, address proof of buyer, and applicable fee (Rs. 150 for two-wheelers, Rs. 300 for cars).",
+            
+            # --- Challans & Testing ---
+            "Uttarakhand RTO driving test slots can be booked online via Sarathi portal. A slot booking is valid only for the selected date and time at the selected Dehradun/RTO center.",
+            "Traffic challan payments can be checked and paid online using the Parivahan e-Challan portal (echallan.parivahan.gov.in) using vehicle number, DL number, or Challan number.",
+        ]
+        
+        metadatas = [
+            {"topic": "license_fee"},
+            {"topic": "license_fee"},
+            {"topic": "apply_learner"},
+            {"topic": "license_renewal"},
+            {"topic": "rc_temporary"},
+            {"topic": "rc_renewal"},
+            {"topic": "rc_transfer"},
+            {"topic": "test_slot"},
+            {"topic": "challan_pay"},
+        ]
+        
+        ids = [f"rto_doc_{i}" for i in range(len(documents))]
+    
+    # 5. Insert documents into collection (upsert avoids duplicating IDs)
+    if documents:
+        print(f"Upserting {len(documents)} documents into 'rto_rules' collection...")
+        collection.upsert(
+            documents=documents,
+            metadatas=metadatas,
+            ids=ids
+        )
+        print("\nSuccessfully updated database!")
+        print(f"Current total document count: {collection.count()}")
+    else:
+        print("No documents were prepared to be inserted.")
+
+if __name__ == "__main__":
+    populate_database()

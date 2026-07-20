@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>RTO Digital Assistant</title>
     <link rel="icon" type="image/svg+xml" href="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><linearGradient id='g' x1='0%' y1='0%' x2='100%' y2='100%'><stop offset='0%' stop-color='%231e3a8a'/><stop offset='100%' stop-color='%233b82f6'/></linearGradient><circle cx='50' cy='50' r='48' fill='url(%23g)'/><path d='M30 48C30 30 70 30 70 48' stroke='white' stroke-width='6' fill='none' stroke-linecap='round'/><rect x='28' y='38' width='44' height='32' rx='10' fill='white'/><rect x='34' y='44' width='32' height='12' rx='6' fill='%231e293b'/><circle cx='44' cy='50' r='3.5' fill='%2360a5fa'/><circle cx='56' cy='50' r='3.5' fill='%2360a5fa'/><rect x='23' y='43' width='7' height='14' rx='3' fill='white'/><rect x='70' y='43' width='7' height='14' rx='3' fill='white'/></svg>">
     
@@ -14,15 +14,19 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=block" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
+    <!-- Marked.js for Markdown Parsing -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=1.2">
 </head>
 <body class="text-md">
     <script>
         (function() {
+            // Apply saved theme preference immediately to body to prevent light-dark visual flash
             const savedTheme = localStorage.getItem('rto-user-theme') || 'system';
             let resolvedTheme = savedTheme;
             if (savedTheme === 'system') {
@@ -30,11 +34,26 @@
                 resolvedTheme = prefersDark ? 'dark' : 'light';
             }
             document.body.classList.add('theme-' + resolvedTheme);
+
+            // Apply saved text size preference immediately to body to prevent text size layout reflow flash
+            const savedFontSize = localStorage.getItem('rto-user-font-size') || 'md';
+            document.body.classList.remove('text-sm', 'text-md', 'text-lg', 'text-xl');
+            document.body.classList.add('text-' + savedFontSize);
         })();
     </script>
 
     <!-- Accessible Skip to Content Link -->
     <a href="#chat-container" class="skip-link">Skip to Chat Assistant</a>
+
+    <!-- Global Shared SVG Gradient Defs -->
+    <svg style="position: absolute; width: 0; height: 0; overflow: hidden;" aria-hidden="true">
+        <defs>
+            <linearGradient id="logoGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#2563eb" />
+                <stop offset="100%" stop-color="#1d4ed8" />
+            </linearGradient>
+        </defs>
+    </svg>
 
     <!-- App Wrapper -->
     <div class="app-wrapper">
@@ -43,7 +62,7 @@
         <header class="app-header" role="banner">
             <div class="header-main">
                 <!-- Hamburger Button (Mobile Only) -->
-                <button id="menu-toggle" class="btn-menu-toggle" aria-label="Open menu drawer" onclick="toggleSidebar(true)">
+                <button id="menu-toggle" class="btn-menu-toggle" aria-label="Toggle menu drawer" onclick="handleMenuToggle()">
                     <i class="fa-solid fa-bars"></i>
                 </button>
 
@@ -80,18 +99,40 @@
 
         <!-- Main Workspace -->
         <main class="main-container" id="chat-container">
+            <script>
+                // Apply sidebar collapsed preference immediately before rendering contents to prevent visual flash
+                if (localStorage.getItem('rto-desktop-sidebar-state') === 'collapsed' && window.innerWidth > 900) {
+                    document.getElementById('chat-container').classList.add('sidebar-collapsed');
+                }
+            </script>
             
+            <!-- Floating Menu Toggle (visible on desktop when collapsed - functions as clickable logo/brand pill) -->
+            <button id="floating-menu-toggle" class="btn-floating-menu" onclick="handleMenuToggle()" aria-label="Expand sidebar">
+                <div class="floating-logo-container">
+                    <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
+                        <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
+                        <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
+                        <rect x="34" y="44" width="32" height="12" rx="6" fill="#1e293b" />
+                        <circle cx="44" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                        <circle cx="56" cy="50" r="3.5" fill="#60a5fa" class="logo-hub-spark" />
+                        <rect x="23" y="43" width="7" height="14" rx="3" fill="white" />
+                        <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
+                    </svg>
+                </div>
+                <span class="floating-brand-text">RTO Assistant</span>
+            </button>
+
             <!-- Sidebar Drawer Overlay (Mobile Only) -->
             <div id="sidebar-overlay" class="sidebar-overlay" onclick="toggleSidebar(false)"></div>
 
             <!-- Sidebar Drawer: Helpful Information, Links & Settings -->
             <aside class="info-sidebar" id="info-sidebar" aria-label="RTO Settings and Information Panel">
-                <!-- Sidebar Header (Mobile Close Button) -->
+                <!-- Sidebar Header -->
                 <div class="sidebar-header">
                     <div class="sidebar-brand">
-                        <!-- Same SVG Logo inside Sidebar Brand -->
                         <div class="sidebar-logo-wrapper">
-                            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                             <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
                                 <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
                                 <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
@@ -102,14 +143,32 @@
                                 <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
                             </svg>
                         </div>
-                        <span>Menu & Settings</span>
+                        <span>RTO Assistant</span>
                     </div>
-                    <button class="close-sidebar-btn" id="close-sidebar" aria-label="Close menu drawer" onclick="toggleSidebar(false)">
-                        &times;
+                    <!-- Menu Collapse Hamburger Button placed on the right inside Sidebar Header -->
+                    <button class="btn-sidebar-toggle" onclick="handleMenuToggle()" aria-label="Collapse sidebar panel">
+                        <i class="fa-solid fa-bars"></i>
                     </button>
                 </div>
 
-                <!-- Section 1: Accessibility Controls -->
+                <!-- Scrollable Content Wrapper -->
+                <div class="sidebar-scroll-content">
+
+                    <!-- Recent Chats History List Container (Structured consistently as a Sidebar Section Card) -->
+                    <div class="sidebar-section history-section">
+                        <h2 class="sidebar-heading"><i class="fa-solid fa-clock-rotate-left"></i> <span data-en="Recent" data-hi="हालिया चैट" data-hn="Recent">Recent</span></h2>
+                        
+                        <!-- New Chat Button inside the History Card at the top of the chat list, similar to Gemini -->
+                        <button class="btn-sidebar-new-chat" onclick="startNewChat()">
+                            <i class="fa-solid fa-plus"></i> <span data-en="New Chat" data-hi="नई चैट" data-hn="New Chat">New Chat</span>
+                        </button>
+                        
+                        <div id="recent-chats-list" class="recent-chats-list">
+                            <!-- Dynamically populated past chats -->
+                        </div>
+                    </div>
+
+                    <!-- Section 1: Accessibility Controls -->
                 <div class="sidebar-section settings-section">
                     <h2 class="sidebar-heading"><i class="fa-solid fa-sliders"></i> Display Settings</h2>
                     
@@ -118,23 +177,34 @@
                         <div class="setting-item">
                             <span class="setting-label">Language:</span>
                             <div class="control-group language-toggle">
-                                <button id="lang-en" class="btn-toggle active" aria-pressed="true" onclick="setLanguage('en')">English</button>
+                                <button id="lang-en" class="btn-toggle" aria-pressed="false" onclick="setLanguage('en')">English</button>
                                 <button id="lang-hi" class="btn-toggle" aria-pressed="false" onclick="setLanguage('hi')">हिन्दी</button>
+                                <button id="lang-hn" class="btn-toggle" aria-pressed="false" onclick="setLanguage('hn')">Hinglish</button>
+                            </div>
+                        </div>
+
+                        <!-- Response Tone Toggle -->
+                        <div class="setting-item">
+                            <span class="setting-label" data-en="Response Tone:" data-hi="उत्तर की टोन:" data-hn="Response Tone:">Response Tone:</span>
+                            <div class="control-group tone-toggle">
+                                <button id="tone-quick" class="btn-toggle" aria-pressed="false" onclick="setTone('quick')" data-en="Quick" data-hi="त्वरित" data-hn="Quick">Quick</button>
+                                <button id="tone-friendly" class="btn-toggle" aria-pressed="false" onclick="setTone('friendly')" data-en="Friendly" data-hi="मित्रवत" data-hn="Friendly">Friendly</button>
+                                <button id="tone-detailed" class="btn-toggle" aria-pressed="false" onclick="setTone('detailed')" data-en="Detailed" data-hi="विस्तृत" data-hn="Detailed">Detailed</button>
                             </div>
                         </div>
 
                         <!-- Text Size Adjuster -->
-                        <div class="setting-item">
+                        <div class="setting-item inline-setting">
                             <span class="setting-label">Text Size:</span>
                             <div class="control-group font-sizer" aria-label="Adjust Text Size">
                                 <button id="font-decrease" class="btn-circle" aria-label="Decrease text size" onclick="adjustTextSize('down')">A-</button>
-                                <button id="font-reset" class="btn-circle active" aria-label="Reset text size" onclick="adjustTextSize('reset')">A</button>
+                                <button id="font-reset" class="btn-circle" aria-label="Reset text size" onclick="adjustTextSize('reset')">A</button>
                                 <button id="font-increase" class="btn-circle" aria-label="Increase text size" onclick="adjustTextSize('up')">A+</button>
                             </div>
                         </div>
 
                         <!-- Theme Toggle -->
-                        <div class="setting-item">
+                        <div class="setting-item inline-setting">
                             <span class="setting-label">Theme:</span>
                             <div class="control-group theme-selector" aria-label="Select Theme">
                                 <button id="theme-system" class="btn-theme" aria-label="System Theme" title="System Theme" onclick="setTheme('system')">
@@ -154,73 +224,29 @@
                     </div>
                 </div>
 
-                <!-- Section 2: Common Help Topics -->
-                <div class="sidebar-section">
-                    <h2 class="sidebar-heading"><i class="fa-solid fa-circle-question"></i> Common Help Topics</h2>
-                    <ul class="help-links">
-                        <li>
-                            <button class="help-link-btn" onclick="sendQuickQuery('apply-license')">
-                                <i class="fa-solid fa-id-card icon-dl"></i>
-                                <div class="help-link-text">
-                                    <span class="topic-title" data-en="Apply for Driving License" data-hi="ड्राइविंग लाइसेंस के लिए आवेदन करें">Apply for Driving License</span>
-                                    <span class="topic-desc" data-en="Step-by-step learning & permanent license guide" data-hi="लर्निंग और स्थायी लाइसेंस गाइड">Step-by-step learning & permanent license guide</span>
-                                </div>
-                            </button>
-                        </li>
-                        <li>
-                            <button class="help-link-btn" onclick="sendQuickQuery('vehicle-rc')">
-                                <i class="fa-solid fa-car icon-rc"></i>
-                                <div class="help-link-text">
-                                    <span class="topic-title" data-en="Vehicle Registration (RC)" data-hi="वाहन पंजीकरण (आरसी)">Vehicle Registration (RC)</span>
-                                    <span class="topic-desc" data-en="Check owner details, transfer of ownership" data-hi="मालिक का विवरण, स्वामित्व स्थानांतरण जांचें">Check owner details, transfer of ownership</span>
-                                </div>
-                            </button>
-                        </li>
-                        <li>
-                            <button class="help-link-btn" onclick="sendQuickQuery('pay-challan')">
-                                <i class="fa-solid fa-file-invoice-dollar icon-challan"></i>
-                                <div class="help-link-text">
-                                    <span class="topic-title" data-en="Pay e-Challan" data-hi="ई-चालान का भुगतान करें">Pay e-Challan</span>
-                                    <span class="topic-desc" data-en="Pay traffic fines and view pending tickets" data-hi="यातायात जुर्माना भरें और लंबित टिकट देखें">Pay traffic fines and view pending tickets</span>
-                                </div>
-                            </button>
-                        </li>
-                        <li>
-                            <button class="help-link-btn" onclick="sendQuickQuery('book-slot')">
-                                <i class="fa-solid fa-calendar-check icon-slot"></i>
-                                <div class="help-link-text">
-                                    <span class="topic-title" data-en="Book Driving Test Slot" data-hi="ड्राइविंग टेस्ट स्लॉट बुक करें">Book Driving Test Slot</span>
-                                    <span class="topic-desc" data-en="Schedule appointments at Uttarakhand RTO" data-hi="उत्तराखंड आरटीओ में स्लॉट बुक करें">Schedule appointments at Uttarakhand RTO</span>
-                                </div>
-                            </button>
-                        </li>
-                    </ul>
-                </div>
-
                 <!-- Section 3: Help & Support -->
                 <div class="sidebar-section contact-card">
                     <h2 class="sidebar-heading">Support Helpline</h2>
                     <a href="tel:01352743432" class="phone-number">
                         <i class="fa-solid fa-phone-volume"></i> 0135-2743432
                     </a>
-                    <p class="working-hours" data-en="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)" data-hi="कार्य समय: सुबह 10:00 - शाम 5:00 (सोम-शनि)">Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)</p>
+                    <p class="working-hours" data-en="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)" data-hi="कार्य समय: सुबह 10:00 - शाम 5:00 (सोम-शनि)" data-hn="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)">Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)</p>
                     <div class="official-link-wrapper">
                         <a href="https://transport.uk.gov.in/" target="_blank" rel="noopener" class="official-link">
                             <i class="fa-solid fa-up-right-from-square"></i> Visit Transport Website
                         </a>
                     </div>
                 </div>
+                </div> <!-- End of sidebar-scroll-content -->
             </aside>
 
             <!-- Chatbot Workspace (Chat First on Mobile) -->
             <section class="chat-section" aria-label="Interactive Chat Window">
-                <!-- Chat Message Feed -->
-                <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
-                    
-                    <!-- Welcome/Greeting Message (Updated Visor Robot Logo) -->
-                    <div class="message assistant">
-                        <div class="avatar" aria-hidden="true">
-                            <svg class="logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <!-- Center Welcome Screen (Gemini style) -->
+                <div id="welcome-screen" class="welcome-screen">
+                    <div class="welcome-content-wrapper">
+                        <div class="welcome-header-logo">
+                            <svg class="welcome-logo-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
                                 <circle cx="50" cy="50" r="48" fill="url(#logoGrad)" class="logo-circle-bg" />
                                 <path d="M30 48C30 30 70 30 70 48" stroke="white" stroke-width="6" fill="none" stroke-linecap="round" />
                                 <rect x="28" y="38" width="44" height="32" rx="10" fill="white" />
@@ -231,22 +257,151 @@
                                 <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
                             </svg>
                         </div>
-                        <div class="message-wrapper">
-                            <div class="message-content">
-                                <div class="message-text" id="welcome-msg">
-                                    Namaste! Welcome to the RTO Digital Assistant. I am designed to help citizens of Uttarakhand find RTO information easily.
-                                    <br><br>
-                                    Feel free to ask me anything about <strong>Driving Licenses</strong>, <strong>Vehicle RC</strong>, or <strong>Challans</strong>.
+                        <h1 id="welcome-title" class="welcome-title" data-en="Namaste! How can I help you today?" data-hi="नमस्ते! आज मैं आपकी क्या सहायता कर सकता हूँ?" data-hn="Namaste! Aaj mai aapki kya help kar sakta hu?">Namaste! How can I help you today?</h1>
+                        <p id="welcome-subtitle" class="welcome-subtitle" data-en="Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status." data-hi="उत्तराखंड ड्राइविंग लाइसेंस, वाहन आरसी, या ट्रैफ़िक चालान स्थिति के बारे में पूछें।" data-hn="Uttarakhand Driving License, Vehicle RC, ya traffic challan status ke baare me puche.">Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status.</p>
+                        
+                        <div class="help-cards-grid">
+                            <!-- Driving License Card -->
+                            <div class="help-card" id="card-dl" onclick="expandCard('dl', event)" role="button" tabindex="0" aria-haspopup="true">
+                                <div class="card-header-layout">
+                                    <button class="btn-card-back" onclick="collapseCards(event)" aria-label="Go back">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                    </button>
+                                    <i class="fa-solid fa-id-card icon-dl"></i>
+                                    <div class="help-card-content">
+                                        <span class="card-title" data-en="Driving License" data-hi="ड्राइविंग लाइसेंस" data-hn="Driving License">Driving License</span>
+                                        <span class="card-desc" data-en="Step-by-step learning & permanent license guide" data-hi="लर्निंग और स्थायी लाइसेंस प्रक्रिया जानें" data-hn="Learning aur Permanent license steps guide">Step-by-step learning & permanent license guide</span>
+                                    </div>
+                                </div>
+                                <div class="card-options-list">
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to apply for a new Learning License?"
+                                            data-hi="नए लर्निंग लाइसेंस के लिए आवेदन कैसे करें?"
+                                            data-hn="Learning license apply kaise kare?">
+                                        How to apply for a new Learning License?
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="Check my Driving License application status."
+                                            data-hi="ड्राइविंग लाइसेंस आवेदन की स्थिति कैसे जांचें?"
+                                            data-hn="Driving license application status kaise check kare?">
+                                        Check my Driving License application status.
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="What documents are required for a Permanent DL?"
+                                            data-hi="स्थायी लाइसेंस के लिए आवश्यक दस्तावेज क्या हैं?"
+                                            data-hn="Permanent license ke liye kya documents chahiye?">
+                                        What documents are required for a Permanent DL?
+                                    </button>
                                 </div>
                             </div>
-                            <div class="message-actions">
-                                <button class="btn-speak" onclick="speakMessage(this)" aria-label="Read this message aloud">
-                                    <i class="fa-solid fa-volume-high"></i> Speak
-                                </button>
+
+                            <!-- Vehicle RC Card -->
+                            <div class="help-card" id="card-rc" onclick="expandCard('rc', event)" role="button" tabindex="0" aria-haspopup="true">
+                                <div class="card-header-layout">
+                                    <button class="btn-card-back" onclick="collapseCards(event)" aria-label="Go back">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                    </button>
+                                    <i class="fa-solid fa-car icon-rc"></i>
+                                    <div class="help-card-content">
+                                        <span class="card-title" data-en="Vehicle RC" data-hi="वाहन आरसी" data-hn="Vehicle RC">Vehicle RC</span>
+                                        <span class="card-desc" data-en="Check owner details, transfer of ownership rules" data-hi="मालिक का विवरण, स्वामित्व स्थानांतरण नियम देखें" data-hn="Owner details, Transfer of ownership check kare">Check owner details, transfer of ownership rules</span>
+                                    </div>
+                                </div>
+                                <div class="card-options-list">
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to check vehicle owner details?"
+                                            data-hi="वाहन मालिक का विवरण कैसे जांचें?"
+                                            data-hn="Gadi ke malik ki details kaise check kare?">
+                                        How to check vehicle owner details?
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="Rules for transfer of vehicle ownership."
+                                            data-hi="वाहन स्वामित्व स्थानांतरण के नियम क्या हैं?"
+                                            data-hn="Vehicle ownership transfer ke rules kya hai?">
+                                        Rules for transfer of vehicle ownership.
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to apply for a duplicate RC?"
+                                            data-hi="डुप्लीकेट आरसी के लिए आवेदन कैसे करें?"
+                                            data-hn="Duplicate RC ke liye apply kaise kare?">
+                                        How to apply for a duplicate RC?
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Traffic Challans Card -->
+                            <div class="help-card" id="card-challan" onclick="expandCard('challan', event)" role="button" tabindex="0" aria-haspopup="true">
+                                <div class="card-header-layout">
+                                    <button class="btn-card-back" onclick="collapseCards(event)" aria-label="Go back">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                    </button>
+                                    <i class="fa-solid fa-file-invoice-dollar icon-challan"></i>
+                                    <div class="help-card-content">
+                                        <span class="card-title" data-en="Traffic Challans" data-hi="ट्रैफ़िक चालान" data-hn="Traffic Challans">Traffic Challans</span>
+                                        <span class="card-desc" data-en="Check fine amounts and pay pending challans online" data-hi="लंबित चालान राशि देखें और ऑनलाइन भुगतान करें" data-hn="Fine amount check kare aur Online challan bhare">Check fine amounts and pay pending challans online</span>
+                                    </div>
+                                </div>
+                                <div class="card-options-list">
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="Check pending traffic challans online."
+                                            data-hi="ऑनलाइन लंबित ट्रैफ़िक चालान की स्थिति कैसे जांचें?"
+                                            data-hn="Pending challan status online kaise check kare?">
+                                        Check pending traffic challans online.
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="Step-by-step guide to pay challans online."
+                                            data-hi="ऑनलाइन चालान भुगतान की चरण-दर-चरण प्रक्रिया?"
+                                            data-hn="Challan online pay karne ka step-by-step process?">
+                                        Step-by-step guide to pay challans online.
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="What to do if a challan is sent to court?"
+                                            data-hi="यदि चालान कोर्ट में भेजा गया है तो क्या करें?"
+                                            data-hn="Agar challan court me chala jaye to kya kare?">
+                                        What to do if a challan is sent to court?
+                                    </button>
+                                </div>
+                            </div>
+
+                            <!-- Book Test Slot Card -->
+                            <div class="help-card" id="card-slot" onclick="expandCard('slot', event)" role="button" tabindex="0" aria-haspopup="true">
+                                <div class="card-header-layout">
+                                    <button class="btn-card-back" onclick="collapseCards(event)" aria-label="Go back">
+                                        <i class="fa-solid fa-arrow-left"></i>
+                                    </button>
+                                    <i class="fa-solid fa-calendar-check icon-slot"></i>
+                                    <div class="help-card-content">
+                                        <span class="card-title" data-en="Book Test Slot" data-hi="टेस्ट स्लॉट बुक करें" data-hn="Test Slot Book kare">Book Test Slot</span>
+                                        <span class="card-desc" data-en="Schedule your driving test appointment online" data-hi="ड्राइविंग टेस्ट के लिए ऑनलाइन स्लॉट बुक करें" data-hn="Driving test ke liye Online appointment schedule kare">Schedule your driving test appointment online</span>
+                                    </div>
+                                </div>
+                                <div class="card-options-list">
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to book a slot for a Learning License test?"
+                                            data-hi="लर्निंग लाइसेंस परीक्षा के लिए स्लॉट कैसे बुक करें?"
+                                            data-hn="LL test ke liye slot book kaise kare?">
+                                        How to book a slot for a Learning License test?
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to book a driving test slot for Permanent DL?"
+                                            data-hi="स्थायी ड्राइविंग लाइसेंस परीक्षा के लिए स्लॉट कैसे बुक करें?"
+                                            data-hn="DL driving test ke liye slot book kaise kare?">
+                                        How to book a driving test slot for Permanent DL?
+                                    </button>
+                                    <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
+                                            data-en="How to cancel or reschedule a booked test slot?"
+                                            data-hi="बुक किए गए टेस्ट स्लॉट को रद्द या पुनर्निर्धारित कैसे करें?"
+                                            data-hn="Booked test slot cancel ya reschedule kaise kare?">
+                                        How to cancel or reschedule a booked test slot?
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </div>
+                </div>
 
+                <!-- Chat Message Feed -->
+                <div class="chat-messages" id="chat-messages" role="log" aria-live="polite">
                 </div>
 
                 <!-- Chat Input Controls -->
@@ -255,8 +410,8 @@
                         <div class="input-row">
                             <!-- Unified Input & Actions Capsule -->
                             <div class="input-wrapper" id="input-wrapper">
-                                <!-- Text Input Box -->
-                                <input type="text" id="user-input" class="chat-input" placeholder="Type your message here..." aria-label="Type your message here" required>
+                                <!-- Text Input Box (Generic ID prevents password manager heuristic triggers) -->
+                                <input type="text" id="chat-query" name="chat-query" class="chat-input" placeholder="Type your message here..." aria-label="Type your message here" required autocomplete="off" autocapitalize="sentences" autocorrect="off" spellcheck="true">
                                 
                                 <!-- Integrated Audio Soundwaves (Gemini-style, hidden by default) -->
                                 <div id="voice-waves" class="voice-waves" style="display: none;">
@@ -287,7 +442,68 @@
 
     </div>
 
+    <!-- Language & UI Settings Restoration Script (runs synchronously before initial paint) -->
+    <script>
+        (function() {
+            var lang = localStorage.getItem('rto-user-lang') || 'en';
+            
+            // 1. Translate input placeholder
+            var inputField = document.getElementById('chat-query');
+            if (inputField) {
+                var placeholders = {
+                    en: "Type your message here...",
+                    hi: "अपना संदेश यहाँ लिखें...",
+                    hn: "Apna message yahan type kare..."
+                };
+                inputField.placeholder = placeholders[lang];
+            }
+            
+            // 2. Translate working hours in sidebar
+            var workingHoursElement = document.querySelector('.working-hours');
+            if (workingHoursElement) {
+                var workingHours = {
+                    en: "Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)",
+                    hi: "कार्य समय: सुबह 10:00 - शाम 5:00 (सोमवार से शनिवार)",
+                    hn: "Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)"
+                };
+                workingHoursElement.textContent = workingHours[lang];
+            }
+            
+            // 3. Translate all elements with language data attributes
+            document.querySelectorAll('[data-en], [data-hi], [data-hn]').forEach(function(elem) {
+                var text = elem.getAttribute('data-' + lang);
+                if (text) {
+                    elem.textContent = text;
+                }
+            });
+
+            // 5. Apply Language active button states
+            var activeLangBtn = document.getElementById('lang-' + lang);
+            if (activeLangBtn) {
+                activeLangBtn.classList.add('active');
+                activeLangBtn.setAttribute('aria-pressed', 'true');
+            }
+            
+            // 6. Apply Font Size active button states
+            var savedFontSize = localStorage.getItem('rto-user-font-size') || 'md';
+            var activeFontBtnId = 'font-reset';
+            if (savedFontSize === 'sm') activeFontBtnId = 'font-decrease';
+            else if (savedFontSize === 'lg' || savedFontSize === 'xl') activeFontBtnId = 'font-increase';
+            var activeFontBtn = document.getElementById(activeFontBtnId);
+            if (activeFontBtn) {
+                activeFontBtn.classList.add('active');
+            }
+            
+            // 7. Apply Theme active button states
+            var savedTheme = localStorage.getItem('rto-user-theme') || 'system';
+            var activeThemeBtn = document.getElementById('theme-' + savedTheme);
+            if (activeThemeBtn) {
+                activeThemeBtn.classList.add('active');
+            }
+        })();
+    </script>
+
     <!-- Custom Script -->
-    <script src="script.js"></script>
+    <script src="script.js?v=1.2"></script>
 </body>
 </html>

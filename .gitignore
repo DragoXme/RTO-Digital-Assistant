@@ -1,0 +1,18 @@
+# Ignore Python virtual environment
+backend/venv/
+backend/__pycache__/
+__pycache__/
+*.pyc
+
+# Ignore OS files
+.DS_Store
+Thumbs.db
+
+# Ignore local environment keys
+.env
+backend/.env
+api_key.txt
+backend/api_key.txt
+
+# Do NOT ignore the vector database so it deploys with Render
+!backend/rto_vector_db/
