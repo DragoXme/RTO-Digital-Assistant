@@ -24,8 +24,22 @@ genai.configure(api_key=GEMINI_API_KEY)
 
 # Connect to the local Vector Database you built in Step 3
 chroma_client = chromadb.PersistentClient(path="./rto_vector_db")
-default_ef = embedding_functions.DefaultEmbeddingFunction()
-collection = chroma_client.get_or_create_collection(name="rto_rules", embedding_function=default_ef)
+
+class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
+    def __call__(self, input):
+        try:
+            response = genai.embed_content(
+                model="models/gemini-embedding-001",
+                content=input,
+                task_type="retrieval_document"
+            )
+            return response['embedding']
+        except Exception as e:
+            print(f"Error generating embeddings: {e}")
+            return [[0.0] * 3072 for _ in input]
+
+gemini_ef = GeminiEmbeddingFunction()
+collection = chroma_client.get_or_create_collection(name="rto_rules", embedding_function=gemini_ef)
 
 @app.route("/api/chat", methods=["POST"])
 def chat():

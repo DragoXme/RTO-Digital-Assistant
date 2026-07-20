@@ -1,7 +1,19 @@
 import os
 import glob
 import chromadb
+import google.generativeai as genai
 from chromadb.utils import embedding_functions
+
+# Configure Gemini API
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
+if not GEMINI_API_KEY:
+    # Try reading from local api_key.txt
+    script_dir = os.path.dirname(os.path.abspath(__file__))
+    key_path = os.path.join(script_dir, "api_key.txt")
+    if os.path.exists(key_path):
+        with open(key_path, "r", encoding="utf-8") as f:
+            GEMINI_API_KEY = f.read().strip()
+genai.configure(api_key=GEMINI_API_KEY)
 
 def populate_database():
     # 1. Resolve paths relative to this script's location for safety and correctness
@@ -12,13 +24,26 @@ def populate_database():
     print(f"Connecting to database at: {db_path}")
     chroma_client = chromadb.PersistentClient(path=db_path)
     
-    # 2. Get the default embedding function
-    default_ef = embedding_functions.DefaultEmbeddingFunction()
+    # 2. Get the Gemini embedding function
+    class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
+        def __call__(self, input):
+            try:
+                response = genai.embed_content(
+                    model="models/gemini-embedding-001",
+                    content=input,
+                    task_type="retrieval_document"
+                )
+                return response['embedding']
+            except Exception as e:
+                print(f"Error generating embeddings: {e}")
+                return [[0.0] * 3072 for _ in input]
+                
+    gemini_ef = GeminiEmbeddingFunction()
     
     # 3. Create or get the collection matching app.py
     collection = chroma_client.get_or_create_collection(
         name="rto_rules", 
-        embedding_function=default_ef
+        embedding_function=gemini_ef
     )
     
     documents = []
