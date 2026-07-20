@@ -2,6 +2,10 @@
    RTO Digital Assistant - Interactive Client Logic & Accessibility
    ========================================================================== */
 
+const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
+    ? 'http://localhost:5000'
+    : 'https://rto-assistant-backend.onrender.com';
+
 // Global State
 let currentLanguage = 'en';
 let currentTone = 'detailed'; // quick, friendly, detailed
@@ -747,7 +751,7 @@ async function speakMessage(btnElement) {
         activeTTSController = new AbortController();
         const signal = activeTTSController.signal;
         
-        const response = await fetch('http://localhost:5000/api/speak', {
+        const response = await fetch(`${API_BASE_URL}/api/speak`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1069,7 +1073,7 @@ async function submitVoiceQuery(base64Audio, mimeType) {
     let lastVoiceTranscription = "";
     
     try {
-        const response = await fetch('http://localhost:5000/api/chat', {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -1643,7 +1647,7 @@ async function deleteChatSession(chatId, event) {
 async function autoGenerateChatTitle(chatId, userMsgText, assistantReplyText) {
     try {
         console.log("[Title Generator] Fetching dynamic name from Gemini...");
-        const response = await fetch('http://localhost:5000/api/generate-title', {
+        const response = await fetch(`${API_BASE_URL}/api/generate-title`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ question: userMsgText, reply: assistantReplyText })
@@ -1801,7 +1805,7 @@ async function handleFormSubmit(event) {
     
     try {
         // Send request to Flask RTO chatbot backend
-        const response = await fetch('http://localhost:5000/api/chat', {
+        const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
