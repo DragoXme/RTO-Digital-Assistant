@@ -22,37 +22,37 @@ let mediaRecorder = null;
 let audioChunks = [];
 let activeAudioCtx = null;
 let activeAudioSource = null;
-const audioCache = {}; // Session cache for generated TTS base64 PCM data
-const conversationHistory = JSON.parse(sessionStorage.getItem('rto-chat-history') || '[]'); // Chat history for model conversational awareness
+const audioCache = {}; // Cache generated TTS audio to prevent redundant network calls
+const conversationHistory = JSON.parse(sessionStorage.getItem('rto-chat-history') || '[]'); // In-memory session history for context retention
 let activeTTSController = null; // AbortController to cancel pending fetches
 let activeSpeakButton = null; // Track currently playing message button
-let activeUtterance = null; // Keep global reference to browser speech utterance to prevent garbage collection bugs
-let speechWatchdog = null; // Safety timer to force-reset buttons if browser audio deadlocks
+let activeUtterance = null; // Prevent browser garbage collection bugs by storing reference
+let speechWatchdog = null; // Safety timer to resolve audio deadlocks
 
-// Initialize Web Speech Recognition
+// Initialize Web Speech API for voice dictation
 let recognition = null;
 let finalSpeechText = ''; // Track transcribed speech text across events
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 if (SpeechRecognition) {
     recognition = new SpeechRecognition();
     recognition.continuous = false;
-    recognition.interimResults = true; // Enabled interim results for live voice typing
+    recognition.interimResults = true; // Enable intermediate results for real-time visual updates
 }
 
-// Web Audio Visualizer Globals (Real-Time Mic Visualizer)
+// Audio context variables for microphone input visualizer
 let audioContext = null;
 let audioSource = null;
 let analyser = null;
 let audioStream = null;
 let visualizerFrameId = null;
 
-// Response Generation Globals
+// State tracking variables for API requests
 let isGenerating = false;
 let activeChatController = null;
 let currentChatId = null; // Tracks active IndexedDB chat session ID
 
 // --------------------------------------------------------------------------
-// IndexedDB Database Wrapper Class for Large, Persistent Offline Chat Storage
+// IndexedDB Wrapper class to handle large persistent database storage offline
 // --------------------------------------------------------------------------
 const DB_NAME = 'RTODigitalAssistantDB';
 const DB_VERSION = 1;
@@ -1024,7 +1024,7 @@ async function toggleVoiceInput() {
 }
 
 async function submitVoiceQuery(base64Audio, mimeType) {
-    // 1. Post a dummy user message bubble indicating voice query transcription
+    // 1. Append user message bubble with transcription placeholder
     const chatFeed = document.getElementById('chat-messages');
     const msgElement = document.createElement('div');
     msgElement.className = 'message user';
@@ -1046,7 +1046,7 @@ async function submitVoiceQuery(base64Audio, mimeType) {
     // Hide welcome screen if visible
     hideWelcomeScreen();
     
-    // 2. Show agent typing indicator
+    // 2. Display assistant typing state indicator
     showTypingIndicator();
     
     setGeneratingState(true);
@@ -1152,7 +1152,7 @@ async function submitVoiceQuery(base64Audio, mimeType) {
             
             addToHistory('model', fullReplyText);
 
-            // Save model response to IndexedDB
+            // Save response to IndexedDB
             if (currentChatId !== null) {
                 try {
                     await RTOChatDB.saveMessage({
@@ -1760,7 +1760,7 @@ async function handleFormSubmit(event) {
     // Hide welcome screen if visible
     hideWelcomeScreen();
     
-    // 2. Show agent typing indicator
+    // 2. Display assistant typing state indicator
     showTypingIndicator();
     
     // Set generating UI state & instantiate AbortController
@@ -1804,7 +1804,7 @@ async function handleFormSubmit(event) {
     }
     
     try {
-        // Send request to Flask RTO chatbot backend
+        // Send request to Flask API backend
         const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
             headers: {
@@ -1868,7 +1868,7 @@ async function handleFormSubmit(event) {
             
             addToHistory('model', fullReplyText);
             
-            // Save model response to IndexedDB
+            // Save response to IndexedDB
             if (currentChatId !== null) {
                 try {
                     await RTOChatDB.saveMessage({

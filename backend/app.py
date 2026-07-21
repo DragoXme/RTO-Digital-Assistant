@@ -10,19 +10,19 @@ from flask_cors import CORS
 from chromadb.utils import embedding_functions
 
 app = Flask(__name__)
-CORS(app) # Allows your frontend code to talk to this backend seamlessly
+CORS(app)  # Enable CORS for cross-origin frontend requests
 
-# Configure the Gemini API with your key
+# Load Gemini API credentials
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
-    # Try reading from a local api_key.txt file (which is not committed to git)
+    # Read local config file fallback if environment variable is absent
     key_path = os.path.join(os.path.dirname(__file__), "api_key.txt")
     if os.path.exists(key_path):
         with open(key_path, "r", encoding="utf-8") as f:
             GEMINI_API_KEY = f.read().strip()
 genai.configure(api_key=GEMINI_API_KEY)
 
-# Connect to the local Vector Database you built in Step 3
+# Initialize ChromaDB persistent client
 chroma_client = chromadb.PersistentClient(path="./rto_vector_db")
 
 class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
@@ -51,7 +51,7 @@ def chat():
         user_lang = user_data.get("language", "en")
         user_tone = user_data.get("tone", "detailed")
 
-        # Parse history
+        # Format conversation logs for model context
         raw_history = user_data.get("history", [])
         print(f"\n[DIAGNOSTIC] Incoming history payload count: {len(raw_history)}")
         for idx, item in enumerate(raw_history):
@@ -67,7 +67,7 @@ def chat():
         if not user_question and not user_audio:
             return jsonify({"error": "No question or audio provided"}), 400
 
-        # 1. Transcribe audio if received (with fallback model chain)
+        # 1. Handle voice input transcription if audio payload is present
         query_text = user_question
         if user_audio:
             TRANS_MODELS = [
@@ -106,7 +106,7 @@ def chat():
                 print("All transcription models failed. Defaulting to empty query...")
                 query_text = ""
 
-        # 2. Condense/Rephrase follow-up query if we have chat history for database retrieval
+        # 2. Rephrase follow-up query if history exists for optimized RAG retrieval
         search_query = query_text
         if formatted_history and query_text:
             try:
@@ -125,7 +125,7 @@ def chat():
             except Exception as rephrase_err:
                 print(f"Failed to rephrase query: {rephrase_err}. Using original query text for search...")
 
-        # 3. Query the local Vector DB to find matching RTO rules
+        # 3. Query vector database for verified context matching search terms
         db_context = "No matching data found."
         try:
             col_count = collection.count()
@@ -141,14 +141,14 @@ def chat():
         except Exception as db_err:
             print(f"Error querying Chroma DB: {db_err}. Querying model without vector database context...")
 
-        # Build language instruction
+        # Build dynamic target language rules
         lang_pref = "The user's default dashboard language is English. Prefer responding in English. However, ALWAYS match the language and script of the user's current message query. If the user asks in Hindi (Devanagari), reply in Hindi. If the user asks in Hinglish (Hindi written in Roman script), reply in Hinglish. If they ask in English, reply in English. Do not force English if the user types in another language."
         if user_lang == "hi":
             lang_pref = "The user's default dashboard language is Hindi. Prefer responding in Hindi (Devanagari script). However, ALWAYS match the language and script of the user's current message query. If the user asks in English, reply in English. If the user asks in Hinglish (Hindi written in Roman script), reply in Hinglish. If they ask in Hindi, reply in Hindi. Do not force Hindi if the user types in another language."
         elif user_lang == "hn":
             lang_pref = "The user's default dashboard language is Hinglish. Prefer responding in Hinglish (Hindi written in Roman/Latin script, e.g. 'Aap driving license status check kar sakte hai'). However, ALWAYS match the language and script of the user's current message query. If the user asks in English, reply in English. If the user asks in Hindi (Devanagari script), reply in Hindi. If they ask in Hinglish, reply in Hinglish. Do not force Hinglish if the user types in another language."
 
-        # Build tone instruction guidelines (not strict rules, allows smart adaptability)
+        # Build dynamic target length and formatting guidelines
         tone_pref = ""
         if user_tone == "quick":
             tone_pref = (
@@ -171,7 +171,7 @@ def chat():
                 "Provide detailed, exhaustive guides covering all options, documents, rules, and steps (both online and offline) in full."
             )
 
-        # 3. Craft your customized instructions telling the model how to behave
+        # 3. Compile system context and model instructions
         system_instruction = (
             "You are an incredibly warm, supportive, and friendly local buddy helping someone navigate the Dehradun RTO office. "
             "Your tone should be casual, encouraging, and clear (like talking to a friend, not a computer). "
@@ -185,10 +185,10 @@ def chat():
             "that this information is not available directly through RTO verified records, but according to the web search or general info, it is: [answer]."
         )
 
-        # 4. Trigger the Chat Model (with Fallback Chain)
+        # 4. Invoke LLM and process stream response
         def generate():
             try:
-                # If audio was input, yield user transcription first
+                # Stream transcription first if input was audio
                 if user_audio and query_text:
                     yield f"data: {json.dumps({'user_transcription': query_text})}\n\n"
 
@@ -214,7 +214,7 @@ def chat():
                         chat = model.start_chat(history=formatted_history)
                         response = chat.send_message(query_text, stream=True)
                         
-                        # Peek at the first chunk to ensure connection/quota success
+                        # Verify model response streaming behaves correctly
                         response_iterator = iter(response)
                         first_chunk = next(response_iterator)
                         
@@ -225,12 +225,12 @@ def chat():
                         if first_chunk.text:
                             yield f"data: {json.dumps({'reply': first_chunk.text})}\n\n"
                         
-                        # Stream remaining chunks
+                        # Stream successive chunks to client
                         for chunk in response_iterator:
                             if chunk.text:
                                 yield f"data: {json.dumps({'reply': chunk.text})}\n\n"
                         
-                        break # Successfully streamed, exit the loop!
+                        break  # Stream execution complete, exit fallback loop
                     except Exception as model_err:
                         print(f"Model models/{model_name} failed: {model_err}")
                         continue
@@ -241,7 +241,7 @@ def chat():
             except Exception as stream_err:
                 yield f"data: {json.dumps({'error': str(stream_err)})}\n\n"
 
-        # 5. Return the stream response
+        # 5. Return SSE response stream
         return Response(generate(), mimetype='text/event-stream')
 
     except Exception as e:
@@ -251,8 +251,8 @@ def chat():
         print("===================================\n")
         return jsonify({"error": str(e)}), 500
 
-# TTS fallback chain: Gemini (best quality) → gTTS (free/unlimited) → browser (signal only)
-# gTTS language mapping: 'en' and 'hn' (Hinglish) use English engine, 'hi' uses Hindi engine
+# TTS Engine configs: Gemini (Primary) -> gTTS (Secondary) -> browser Web Speech API (Fallback)
+# Map language parameters to gTTS language keys (English maps for Hinglish transliterations)
 GTTS_LANG_MAP = {"en": "en", "hn": "en", "hi": "hi"}
 
 # Gemini TTS model fallback chain (newest first)
@@ -271,7 +271,7 @@ def speak():
     if not text:
         return jsonify({"error": "No text provided"}), 400
 
-    # --- Tier 1: Gemini Native TTS ---
+    # --- Tier 1: Gemini Native Speech Generation ---
     try:
         print("[TTS] Attempting Gemini native TTS...")
         for model_name in GEMINI_TTS_MODELS:
@@ -301,7 +301,7 @@ def speak():
     except Exception as gemini_fail:
         print(f"[TTS] Gemini TTS unavailable: {gemini_fail}. Falling back to gTTS...")
 
-    # --- Tier 2: Google Translate TTS (gTTS) — free & unlimited ---
+    # --- Tier 2: gTTS Fallback ---
     try:
         gtts_lang = GTTS_LANG_MAP.get(lang, "en")
         print(f"[TTS] Using gTTS fallback | lang: {lang} → gtts_lang: {gtts_lang}")
@@ -314,7 +314,7 @@ def speak():
     except Exception as gtts_fail:
         print(f"[TTS] gTTS also failed: {gtts_fail}. Signalling browser fallback...")
 
-    # --- Tier 3: Signal browser to use its own Web Speech API ---
+    # --- Tier 3: Browser Fallback Notification ---
     return jsonify({"error": "browser_fallback", "lang": lang}), 503
 
 @app.route("/api/generate-title", methods=["POST"])
@@ -341,7 +341,7 @@ def generate_title():
         response = model.generate_content(prompt)
         title = response.text.strip().replace('"', '').replace("'", "")
         
-        # If response is empty or too long, default it
+        # Fallback to default name if generation fails or is too long
         if not title or len(title) > 60:
             title = "New Chat"
             
@@ -352,5 +352,5 @@ def generate_title():
         return jsonify({"title": "New Chat"}), 200
 
 if __name__ == "__main__":
-    # Runs your backend on http://localhost:5000
+    # Start local development server
     app.run(port=5000, debug=True)

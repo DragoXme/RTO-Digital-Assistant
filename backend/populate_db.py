@@ -4,10 +4,10 @@ import chromadb
 import google.generativeai as genai
 from chromadb.utils import embedding_functions
 
-# Configure Gemini API
+# Configure Gemini API client
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
 if not GEMINI_API_KEY:
-    # Try reading from local api_key.txt
+    # Local fallback file lookup
     script_dir = os.path.dirname(os.path.abspath(__file__))
     key_path = os.path.join(script_dir, "api_key.txt")
     if os.path.exists(key_path):
@@ -16,7 +16,7 @@ if not GEMINI_API_KEY:
 genai.configure(api_key=GEMINI_API_KEY)
 
 def populate_database():
-    # 1. Resolve paths relative to this script's location for safety and correctness
+    # Resolve absolute paths relative to script root
     script_dir = os.path.dirname(os.path.abspath(__file__))
     db_path = os.path.join(script_dir, "rto_vector_db")
     docs_dir = os.path.join(script_dir, "rto_docs")
@@ -24,7 +24,7 @@ def populate_database():
     print(f"Connecting to database at: {db_path}")
     chroma_client = chromadb.PersistentClient(path=db_path)
     
-    # 2. Get the Gemini embedding function
+    # Define custom Gemini remote embedding helper
     class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
         def __call__(self, input):
             try:
@@ -40,7 +40,7 @@ def populate_database():
                 
     gemini_ef = GeminiEmbeddingFunction()
     
-    # 3. Create or get the collection matching app.py
+    # Initialize RTO database collection
     collection = chroma_client.get_or_create_collection(
         name="rto_rules", 
         embedding_function=gemini_ef
@@ -50,7 +50,7 @@ def populate_database():
     metadatas = []
     ids = []
     
-    # 4. Check if there are text files (.txt or .md) in the rto_docs directory
+    # Read RTO documentation source files
     text_files = glob.glob(os.path.join(docs_dir, "*.txt")) + glob.glob(os.path.join(docs_dir, "*.md"))
     
     if text_files:
@@ -63,24 +63,24 @@ def populate_database():
                 with open(filepath, "r", encoding="utf-8") as f:
                     content = f.read()
                 
-                # Split content by double newlines to segment it into paragraphs
+                # Segment document by paragraph blocks
                 chunks = [c.strip() for c in content.split("\n\n") if c.strip()]
                 
-                # Fallback to single line split if double newline chunking yields a single block
+                # Fallback line-split chunking if no paragraph blocks exist
                 if len(chunks) <= 1:
                     chunks = [c.strip() for c in content.split("\n") if len(c.strip()) > 30]
                 
                 for idx, chunk in enumerate(chunks):
                     documents.append(chunk)
                     metadatas.append({"source": filename, "chunk_index": idx})
-                    # Create a safe unique ID
+                    # Generate sanitized unique alphanumeric key
                     safe_name = "".join([c if c.isalnum() else "_" for c in filename])
                     ids.append(f"file_{safe_name}_{idx}")
             except Exception as e:
                 print(f"  Error reading {filename}: {e}")
     else:
         print(f"\nNo text files (.txt or .md) found in {docs_dir}.")
-        print("Falling back to populating default RTO rules list...")
+        # Use default fallback dataset if no source files are present
         
         documents = [
             # --- License Topics ---
@@ -113,7 +113,7 @@ def populate_database():
         
         ids = [f"rto_doc_{i}" for i in range(len(documents))]
     
-    # 5. Insert documents into collection (upsert avoids duplicating IDs)
+    # Write/upsert data points to vector database
     if documents:
         print(f"Upserting {len(documents)} documents into 'rto_rules' collection...")
         collection.upsert(
