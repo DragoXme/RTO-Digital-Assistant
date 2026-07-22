@@ -52,6 +52,7 @@ def chat():
         user_tone = user_data.get("tone", "detailed")
 
         # Format conversation logs for model context
+        raw_history = user_data.get("history", [])
         print(f"\n[RENDER-LOG] === Incoming POST /api/chat ===")
         print(f"[RENDER-LOG] Query: '{user_question[:80]}...' | Tone: {user_tone} | Lang: {user_lang} | History payload count: {len(raw_history)}")
 
