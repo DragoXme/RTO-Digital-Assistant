@@ -14,14 +14,14 @@
     <!-- Fonts & Icons -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&display=block" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Outfit:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Devanagari:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <!-- Marked.js for Markdown Parsing -->
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     
     <!-- Custom CSS -->
-    <link rel="stylesheet" href="style.css?v=1.2">
+    <link rel="stylesheet" href="style.css?v=1.4">
 </head>
 <body class="text-md">
     <script>
@@ -91,7 +91,7 @@
                         </svg>
                     </div>
                     <div class="brand-text">
-                        <h1 class="app-title">RTO Digital Assistant</h1>
+                        <h1 class="app-title" data-en="RTO Digital Assistant" data-hi="आरटीओ डिजिटल सहायक" data-hn="RTO Digital Assistant">RTO Digital Assistant</h1>
                     </div>
                 </div>
             </div>
@@ -120,7 +120,7 @@
                         <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
                     </svg>
                 </div>
-                <span class="floating-brand-text">RTO Assistant</span>
+                <span class="floating-brand-text" data-en="RTO Assistant" data-hi="आरटीओ सहायक" data-hn="RTO Assistant">RTO Assistant</span>
             </button>
 
             <!-- Sidebar Drawer Overlay (Mobile Only) -->
@@ -143,7 +143,7 @@
                                 <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
                             </svg>
                         </div>
-                        <span>RTO Assistant</span>
+                        <span data-en="RTO Assistant" data-hi="आरटीओ सहायक" data-hn="RTO Assistant">RTO Assistant</span>
                     </div>
                     <!-- Menu Collapse Hamburger Button placed on the right inside Sidebar Header -->
                     <button class="btn-sidebar-toggle" onclick="handleMenuToggle()" aria-label="Collapse sidebar panel">
@@ -170,12 +170,12 @@
 
                     <!-- Section 1: Accessibility Controls -->
                 <div class="sidebar-section settings-section">
-                    <h2 class="sidebar-heading"><i class="fa-solid fa-sliders"></i> Display Settings</h2>
+                    <h2 class="sidebar-heading"><i class="fa-solid fa-sliders"></i> <span data-en="Display Settings" data-hi="डिस्प्ले सेटिंग्स" data-hn="Display Settings">Display Settings</span></h2>
                     
                     <div class="settings-list">
                         <!-- Language Toggle -->
                         <div class="setting-item">
-                            <span class="setting-label">Language:</span>
+                            <span class="setting-label" data-en="Language:" data-hi="भाषा (Language):" data-hn="Language:">Language:</span>
                             <div class="control-group language-toggle">
                                 <button id="lang-en" class="btn-toggle" aria-pressed="false" onclick="setLanguage('en')">English</button>
                                 <button id="lang-hi" class="btn-toggle" aria-pressed="false" onclick="setLanguage('hi')">हिन्दी</button>
@@ -195,7 +195,7 @@
 
                         <!-- Text Size Adjuster -->
                         <div class="setting-item inline-setting">
-                            <span class="setting-label">Text Size:</span>
+                            <span class="setting-label" data-en="Text Size:" data-hi="अक्षरों का साइज:" data-hn="Text Size:">Text Size:</span>
                             <div class="control-group font-sizer" aria-label="Adjust Text Size">
                                 <button id="font-decrease" class="btn-circle" aria-label="Decrease text size" onclick="adjustTextSize('down')">A-</button>
                                 <button id="font-reset" class="btn-circle" aria-label="Reset text size" onclick="adjustTextSize('reset')">A</button>
@@ -205,7 +205,7 @@
 
                         <!-- Theme Toggle -->
                         <div class="setting-item inline-setting">
-                            <span class="setting-label">Theme:</span>
+                            <span class="setting-label" data-en="Theme:" data-hi="थीम (Theme):" data-hn="Theme:">Theme:</span>
                             <div class="control-group theme-selector" aria-label="Select Theme">
                                 <button id="theme-system" class="btn-theme" aria-label="System Theme" title="System Theme" onclick="setTheme('system')">
                                     <i class="fa-solid fa-desktop"></i>
@@ -226,14 +226,14 @@
 
                 <!-- Section 3: Help & Support -->
                 <div class="sidebar-section contact-card">
-                    <h2 class="sidebar-heading">Support Helpline</h2>
+                    <h2 class="sidebar-heading" data-en="Support Helpline" data-hi="मदद हेल्पलाइन" data-hn="Support Helpline">Support Helpline</h2>
                     <a href="tel:01352743432" class="phone-number">
                         <i class="fa-solid fa-phone-volume"></i> 0135-2743432
                     </a>
                     <p class="working-hours" data-en="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)" data-hi="कार्य समय: सुबह 10:00 - शाम 5:00 (सोम-शनि)" data-hn="Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)">Working Hours: 10:00 AM - 5:00 PM (Mon-Sat)</p>
                     <div class="official-link-wrapper">
                         <a href="https://transport.uk.gov.in/" target="_blank" rel="noopener" class="official-link">
-                            <i class="fa-solid fa-up-right-from-square"></i> Visit Transport Website
+                            <i class="fa-solid fa-up-right-from-square"></i> <span data-en="Visit Transport Website" data-hi="वेबसाइट पर जाएं" data-hn="Visit Website">Visit Transport Website</span>
                         </a>
                     </div>
                 </div>
@@ -257,8 +257,8 @@
                                 <rect x="70" y="43" width="7" height="14" rx="3" fill="white" />
                             </svg>
                         </div>
-                        <h1 id="welcome-title" class="welcome-title" data-en="Namaste! How can I help you today?" data-hi="नमस्ते! आज मैं आपकी क्या सहायता कर सकता हूँ?" data-hn="Namaste! Aaj mai aapki kya help kar sakta hu?">Namaste! How can I help you today?</h1>
-                        <p id="welcome-subtitle" class="welcome-subtitle" data-en="Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status." data-hi="उत्तराखंड ड्राइविंग लाइसेंस, वाहन आरसी, या ट्रैफ़िक चालान स्थिति के बारे में पूछें।" data-hn="Uttarakhand Driving License, Vehicle RC, ya traffic challan status ke baare me puche.">Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status.</p>
+                        <h1 id="welcome-title" class="welcome-title" data-en="Namaste! How can I help you today?" data-hi="नमस्ते! आज मैं आपकी क्या मदद कर सकता हूँ?" data-hn="Namaste! Aaj mai aapki kya help kar sakta hu?">Namaste! How can I help you today?</h1>
+                        <p id="welcome-subtitle" class="welcome-subtitle" data-en="Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status." data-hi="उत्तराखंड ड्राइविंग लाइसेंस, गाड़ी की RC, या ट्रैफ़िक चालान का स्टेटस जानें।" data-hn="Uttarakhand Driving License, Vehicle RC, ya traffic challan status ke baare me puche.">Ask about Uttarakhand Driving License, Vehicle RC, or traffic challan status.</p>
                         
                         <div class="help-cards-grid">
                             <!-- Driving License Card -->
@@ -270,25 +270,25 @@
                                     <i class="fa-solid fa-id-card icon-dl"></i>
                                     <div class="help-card-content">
                                         <span class="card-title" data-en="Driving License" data-hi="ड्राइविंग लाइसेंस" data-hn="Driving License">Driving License</span>
-                                        <span class="card-desc" data-en="Step-by-step learning & permanent license guide" data-hi="लर्निंग और स्थायी लाइसेंस प्रक्रिया जानें" data-hn="Learning aur Permanent license steps guide">Step-by-step learning & permanent license guide</span>
+                                        <span class="card-desc" data-en="Step-by-step learning & permanent license guide" data-hi="लर्निंग और पक्के (Permanent) लाइसेंस का प्रोसेस जानें" data-hn="Learning aur Permanent license steps guide">Step-by-step learning & permanent license guide</span>
                                     </div>
                                 </div>
                                 <div class="card-options-list">
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to apply for a new Learning License?"
-                                            data-hi="नए लर्निंग लाइसेंस के लिए आवेदन कैसे करें?"
+                                            data-hi="नया लर्निंग लाइसेंस कैसे बनवाएं?"
                                             data-hn="Learning license apply kaise kare?">
                                         How to apply for a new Learning License?
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="Check my Driving License application status."
-                                            data-hi="ड्राइविंग लाइसेंस आवेदन की स्थिति कैसे जांचें?"
+                                            data-hi="ड्राइविंग लाइसेंस का स्टेटस कैसे चेक करें?"
                                             data-hn="Driving license application status kaise check kare?">
                                         Check my Driving License application status.
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="What documents are required for a Permanent DL?"
-                                            data-hi="स्थायी लाइसेंस के लिए आवश्यक दस्तावेज क्या हैं?"
+                                            data-hi="पक्के (Permanent) लाइसेंस के लिए क्या डॉक्यूमेंट्स चाहिए?"
                                             data-hn="Permanent license ke liye kya documents chahiye?">
                                         What documents are required for a Permanent DL?
                                     </button>
@@ -304,25 +304,25 @@
                                     <i class="fa-solid fa-car icon-rc"></i>
                                     <div class="help-card-content">
                                         <span class="card-title" data-en="Vehicle RC" data-hi="वाहन आरसी" data-hn="Vehicle RC">Vehicle RC</span>
-                                        <span class="card-desc" data-en="Check owner details, transfer of ownership rules" data-hi="मालिक का विवरण, स्वामित्व स्थानांतरण नियम देखें" data-hn="Owner details, Transfer of ownership check kare">Check owner details, transfer of ownership rules</span>
+                                        <span class="card-desc" data-en="Check owner details, transfer of ownership rules" data-hi="गाड़ी के मालिक की जानकारी, RC ट्रांसफर के नियम देखें" data-hn="Owner details, Transfer of ownership check kare">Check owner details, transfer of ownership rules</span>
                                     </div>
                                 </div>
                                 <div class="card-options-list">
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to check vehicle owner details?"
-                                            data-hi="वाहन मालिक का विवरण कैसे जांचें?"
+                                            data-hi="गाड़ी के मालिक की जानकारी कैसे चेक करें?"
                                             data-hn="Gadi ke malik ki details kaise check kare?">
                                         How to check vehicle owner details?
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="Rules for transfer of vehicle ownership."
-                                            data-hi="वाहन स्वामित्व स्थानांतरण के नियम क्या हैं?"
+                                            data-hi="गाड़ी की RC ट्रांसफर करने के क्या नियम हैं?"
                                             data-hn="Vehicle ownership transfer ke rules kya hai?">
                                         Rules for transfer of vehicle ownership.
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to apply for a duplicate RC?"
-                                            data-hi="डुप्लीकेट आरसी के लिए आवेदन कैसे करें?"
+                                            data-hi="डुप्लीकेट RC के लिए अप्लाई कैसे करें?"
                                             data-hn="Duplicate RC ke liye apply kaise kare?">
                                         How to apply for a duplicate RC?
                                     </button>
@@ -338,25 +338,25 @@
                                     <i class="fa-solid fa-file-invoice-dollar icon-challan"></i>
                                     <div class="help-card-content">
                                         <span class="card-title" data-en="Traffic Challans" data-hi="ट्रैफ़िक चालान" data-hn="Traffic Challans">Traffic Challans</span>
-                                        <span class="card-desc" data-en="Check fine amounts and pay pending challans online" data-hi="लंबित चालान राशि देखें और ऑनलाइन भुगतान करें" data-hn="Fine amount check kare aur Online challan bhare">Check fine amounts and pay pending challans online</span>
+                                        <span class="card-desc" data-en="Check fine amounts and pay pending challans online" data-hi="पेंडिंग चालान देखें और ऑनलाइन पेमेंट करें" data-hn="Fine amount check kare aur Online challan bhare">Check fine amounts and pay pending challans online</span>
                                     </div>
                                 </div>
                                 <div class="card-options-list">
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="Check pending traffic challans online."
-                                            data-hi="ऑनलाइन लंबित ट्रैफ़िक चालान की स्थिति कैसे जांचें?"
+                                            data-hi="पेंडिंग ट्रैफ़िक चालान का स्टेटस ऑनलाइन कैसे चेक करें?"
                                             data-hn="Pending challan status online kaise check kare?">
                                         Check pending traffic challans online.
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="Step-by-step guide to pay challans online."
-                                            data-hi="ऑनलाइन चालान भुगतान की चरण-दर-चरण प्रक्रिया?"
+                                            data-hi="ऑनलाइन चालान पेमेंट करने का स्टेप-बाय-स्टेप प्रोसेस?"
                                             data-hn="Challan online pay karne ka step-by-step process?">
                                         Step-by-step guide to pay challans online.
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="What to do if a challan is sent to court?"
-                                            data-hi="यदि चालान कोर्ट में भेजा गया है तो क्या करें?"
+                                            data-hi="अगर चालान कोर्ट में चला गया है तो क्या करें?"
                                             data-hn="Agar challan court me chala jaye to kya kare?">
                                         What to do if a challan is sent to court?
                                     </button>
@@ -378,19 +378,19 @@
                                 <div class="card-options-list">
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to book a slot for a Learning License test?"
-                                            data-hi="लर्निंग लाइसेंस परीक्षा के लिए स्लॉट कैसे बुक करें?"
+                                            data-hi="लर्निंग लाइसेंस टेस्ट के लिए स्लॉट कैसे बुक करें?"
                                             data-hn="LL test ke liye slot book kaise kare?">
                                         How to book a slot for a Learning License test?
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to book a driving test slot for Permanent DL?"
-                                            data-hi="स्थायी ड्राइविंग लाइसेंस परीक्षा के लिए स्लॉट कैसे बुक करें?"
+                                            data-hi="पक्के (Permanent) लाइसेंस टेस्ट के लिए स्लॉट कैसे बुक करें?"
                                             data-hn="DL driving test ke liye slot book kaise kare?">
                                         How to book a driving test slot for Permanent DL?
                                     </button>
                                     <button class="option-btn" onclick="sendSubOptionQuery(this, event)"
                                             data-en="How to cancel or reschedule a booked test slot?"
-                                            data-hi="बुक किए गए टेस्ट स्लॉट को रद्द या पुनर्निर्धारित कैसे करें?"
+                                            data-hi="बुक किया गया टेस्ट स्लॉट कैंसिल या रीशेड्यूल कैसे करें?"
                                             data-hn="Booked test slot cancel ya reschedule kaise kare?">
                                         How to cancel or reschedule a booked test slot?
                                     </button>
