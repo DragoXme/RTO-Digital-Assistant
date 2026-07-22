@@ -4,4 +4,5 @@ google-genai
 google-generativeai
 chromadb
 gunicorn
+gevent
 gTTS

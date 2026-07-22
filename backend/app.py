@@ -384,17 +384,10 @@ def chat():
                         
                         stream = chat.send_message_stream(query_text)
                         
-                        # Verify model response streaming begins
-                        stream_iter = iter(stream)
-                        first_chunk = next(stream_iter)
-                        
                         successful_model = model_name
                         print(f"[RENDER-LOG] Successfully connected to models/{model_name}!")
                         
-                        if first_chunk.text:
-                            yield f"data: {json.dumps({'reply': first_chunk.text})}\n\n"
-                        
-                        for chunk in stream_iter:
+                        for chunk in stream:
                             if chunk.text:
                                 yield f"data: {json.dumps({'reply': chunk.text})}\n\n"
                         
