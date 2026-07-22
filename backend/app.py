@@ -59,10 +59,21 @@ def chat():
 
         formatted_history = []
         for item in raw_history:
+            role = "user" if item.get("role") == "user" else "model"
+            text = item.get("text", "").strip()
+            if not text:
+                continue
+            # Prevent consecutive identical roles
+            if formatted_history and formatted_history[-1]["role"] == role:
+                continue
             formatted_history.append({
-                "role": "user" if item.get("role") == "user" else "model",
-                "parts": [item.get("text", "")]
+                "role": role,
+                "parts": [text]
             })
+
+        # History passed to start_chat must end with a 'model' turn so send_message appends the new 'user' turn
+        if formatted_history and formatted_history[-1]["role"] == "user":
+            formatted_history.pop()
 
         if not user_question and not user_audio:
             return jsonify({"error": "No question or audio provided"}), 400
@@ -193,12 +204,9 @@ def chat():
                     yield f"data: {json.dumps({'user_transcription': query_text})}\n\n"
 
                 CHAT_MODELS = [
-                    "gemini-3.1-flash-lite", # Primary (500 RPD!)
-                    "gemini-3.5-flash",      # 20 RPD
-                    "gemini-3-flash",        # 20 RPD
-                    "gemini-2.5-flash",      # 20 RPD
-                    "gemini-2.5-flash-lite", # 20 RPD
-                    "gemini-2.0-flash"       # 20 RPD
+                    "gemini-2.0-flash",      # Fast & stable primary
+                    "gemini-2.5-flash",      # Secondary
+                    "gemini-3.1-flash-lite", # Fallback
                 ]
 
                 response = None
@@ -241,11 +249,15 @@ def chat():
             except Exception as stream_err:
                 yield f"data: {json.dumps({'error': str(stream_err)})}\n\n"
 
-        # 5. Return SSE response stream without buffering
+        # 5. Return SSE response stream without buffering and with explicit CORS headers
         return Response(
             generate(),
             mimetype='text/event-stream',
-            headers={'X-Accel-Buffering': 'no'}
+            headers={
+                'X-Accel-Buffering': 'no',
+                'Access-Control-Allow-Origin': '*',
+                'Cache-Control': 'no-cache'
+            }
         )
 
     except Exception as e:

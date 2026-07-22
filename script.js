@@ -15,7 +15,8 @@ const API_BASE_URL = (function() {
     if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
         return 'http://localhost:5000';
     }
-    if (window.RTO_TUNNEL_BACKEND) {
+    // Only use localtunnel backend if frontend itself is served from localtunnel (.loca.lt)
+    if (window.location.hostname.endsWith('.loca.lt') && window.RTO_TUNNEL_BACKEND) {
         return window.RTO_TUNNEL_BACKEND;
     }
     const customBackend = localStorage.getItem('rto-custom-backend-url');
