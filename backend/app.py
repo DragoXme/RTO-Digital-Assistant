@@ -241,8 +241,12 @@ def chat():
             except Exception as stream_err:
                 yield f"data: {json.dumps({'error': str(stream_err)})}\n\n"
 
-        # 5. Return SSE response stream
-        return Response(generate(), mimetype='text/event-stream')
+        # 5. Return SSE response stream without buffering
+        return Response(
+            generate(),
+            mimetype='text/event-stream',
+            headers={'X-Accel-Buffering': 'no'}
+        )
 
     except Exception as e:
         import traceback
