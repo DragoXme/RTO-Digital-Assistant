@@ -20,7 +20,7 @@ if not GEMINI_API_KEY:
     if os.path.exists(key_path):
         with open(key_path, "r", encoding="utf-8") as f:
             GEMINI_API_KEY = f.read().strip()
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY, transport='rest')
 
 # Initialize ChromaDB persistent client
 chroma_client = chromadb.PersistentClient(path="./rto_vector_db")

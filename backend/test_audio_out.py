@@ -7,7 +7,7 @@ if not GEMINI_API_KEY:
     if os.path.exists(key_path):
         with open(key_path, "r", encoding="utf-8") as f:
             GEMINI_API_KEY = f.read().strip()
-genai.configure(api_key=GEMINI_API_KEY)
+genai.configure(api_key=GEMINI_API_KEY, transport='rest')
 
 try:
     print("Testing generate_content on models/gemini-3.1-flash-tts-preview...")
