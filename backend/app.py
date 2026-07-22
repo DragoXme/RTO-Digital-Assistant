@@ -2,9 +2,11 @@ import os
 import json
 import base64
 import io
+import time
 from gtts import gTTS
 import chromadb
-import google.generativeai as genai
+from google import genai
+from google.genai import types
 from flask import Flask, request, jsonify, Response
 from flask_cors import CORS
 from chromadb.utils import embedding_functions
@@ -20,7 +22,9 @@ if not GEMINI_API_KEY:
     if os.path.exists(key_path):
         with open(key_path, "r", encoding="utf-8") as f:
             GEMINI_API_KEY = f.read().strip()
-genai.configure(api_key=GEMINI_API_KEY, transport='rest')
+
+# Initialize Google GenAI Client (Official 2026 SDK)
+client = genai.Client(api_key=GEMINI_API_KEY)
 
 # Initialize ChromaDB persistent client
 chroma_client = chromadb.PersistentClient(path="./rto_vector_db")
@@ -28,14 +32,13 @@ chroma_client = chromadb.PersistentClient(path="./rto_vector_db")
 class GeminiEmbeddingFunction(embedding_functions.EmbeddingFunction):
     def __call__(self, input):
         try:
-            response = genai.embed_content(
+            embed_res = client.models.embed_content(
                 model="models/gemini-embedding-001",
-                content=input,
-                task_type="retrieval_document"
+                contents=input
             )
-            return response['embedding']
+            return [e.values for e in embed_res.embeddings]
         except Exception as e:
-            print(f"Error generating embeddings: {e}")
+            print(f"[RENDER-LOG] Error generating embeddings: {e}")
             return [[0.0] * 3072 for _ in input]
 
 gemini_ef = GeminiEmbeddingFunction()
@@ -164,12 +167,12 @@ def home():
                 Backend API Operational
             </div>
             <h1>RTO Digital Assistant Server</h1>
-            <p>The backend service is online and ready. All AI vector RAG features, speech engines, and Gemini 2.0 streaming models are running.</p>
+            <p>The backend service is online and ready. All AI vector RAG features, speech engines, and Gemini 3.1 streaming models are running.</p>
             <a href="https://rto-digital-assistant.vercel.app/" class="btn">
                 Launch Assistant Web App 🚀
             </a>
             <div class="features">
-                <div class="feature-item">⚡ Gemini 2.0 LLM</div>
+                <div class="feature-item">⚡ Gemini 3.1 LLM</div>
                 <div class="feature-item">🔍 ChromaDB Vector RAG</div>
                 <div class="feature-item">🎙️ Native Voice & TTS</div>
                 <div class="feature-item">🌐 Multi-Lingual Sync</div>
@@ -221,16 +224,14 @@ def chat():
         if user_audio:
             TRANS_MODELS = [
                 "gemini-3.1-flash-lite",
-                "gemini-3.5-flash",
-                "gemini-3-flash",
-                "gemini-2.5-flash"
+                "gemini-3.5-flash-lite",
+                "gemini-1.5-flash"
             ]
             trans_success = False
             for model_name in TRANS_MODELS:
                 try:
                     audio_bytes = base64.b64decode(user_audio)
-                    print(f"Attempting transcription using models/{model_name}...")
-                    transcribe_model = genai.GenerativeModel(model_name=f"models/{model_name}")
+                    print(f"[RENDER-LOG] Attempting transcription using models/{model_name}...")
                     
                     transcribe_prompt = "Transcribe the user's voice message verbatim in its spoken language. Do not add any conversational response, greeting, or answers. Return ONLY the transcribed text."
                     if user_lang == "hi":
@@ -240,26 +241,28 @@ def chat():
                     else:
                         transcribe_prompt += " Specifically, transcribe the speech in English script."
 
-                    transcribe_response = transcribe_model.generate_content([
-                        {"mime_type": audio_mime, "data": audio_bytes},
-                        transcribe_prompt
-                    ])
+                    transcribe_response = client.models.generate_content(
+                        model=f"models/{model_name}",
+                        contents=[
+                            types.Part.from_bytes(data=audio_bytes, mime_type=audio_mime),
+                            transcribe_prompt
+                        ]
+                    )
                     query_text = transcribe_response.text.strip()
-                    print(f"Transcription success on models/{model_name}: '{query_text}'")
+                    print(f"[RENDER-LOG] Transcription success on models/{model_name}: '{query_text}'")
                     trans_success = True
                     break
                 except Exception as trans_err:
-                    print(f"Transcription model models/{model_name} failed: {trans_err}")
+                    print(f"[RENDER-LOG] Transcription model models/{model_name} failed: {trans_err}")
                     continue
             if not trans_success:
-                print("All transcription models failed. Defaulting to empty query...")
+                print("[RENDER-LOG] All transcription models failed. Defaulting to empty query...")
                 query_text = ""
 
         # 2. Rephrase follow-up query if history exists for optimized RAG retrieval
         search_query = query_text
         if formatted_history and query_text:
             try:
-                rephrase_model = genai.GenerativeModel(model_name="models/gemini-3.1-flash-lite")
                 rephrase_prompt = (
                     "You are a search query optimizer. Given the following chat conversation history and a new follow-up question from the user, "
                     "rephrase the follow-up question into a standalone, concise search query in English that can be used to search a database for answers. "
@@ -268,11 +271,14 @@ def chat():
                     f"Follow-up Question: {query_text}\n\n"
                     "Optimized Standalone Search Query:"
                 )
-                rephrase_response = rephrase_model.generate_content(rephrase_prompt)
+                rephrase_response = client.models.generate_content(
+                    model="models/gemini-3.1-flash-lite",
+                    contents=rephrase_prompt
+                )
                 search_query = rephrase_response.text.strip()
-                print(f"RAG query condensed: '{query_text}' -> '{search_query}'")
+                print(f"[RENDER-LOG] RAG query condensed: '{query_text}' -> '{search_query}'")
             except Exception as rephrase_err:
-                print(f"Failed to rephrase query: {rephrase_err}. Using original query text for search...")
+                print(f"[RENDER-LOG] Failed to rephrase query: {rephrase_err}. Using original query text...")
 
         # 3. Query vector database for verified context matching search terms
         db_context = "No matching data found."
@@ -286,9 +292,9 @@ def chat():
                 if results and results['documents'] and results['documents'][0]:
                     db_context = " ".join(results['documents'][0])
             else:
-                print("Chroma DB collection 'rto_rules' is empty or query is empty. Skipping retrieval...")
+                print("[RENDER-LOG] Chroma DB collection 'rto_rules' is empty or query is empty. Skipping retrieval...")
         except Exception as db_err:
-            print(f"Error querying Chroma DB: {db_err}. Querying model without vector database context...")
+            print(f"[RENDER-LOG] Error querying Chroma DB: {db_err}. Querying model without vector database context...")
 
         # Build dynamic target language rules
         lang_pref = "The user's default dashboard language is English. Prefer responding in English. However, ALWAYS match the language and script of the user's current message query. If the user asks in Hindi (Devanagari), reply in Hindi. If the user asks in Hinglish (Hindi written in Roman script), reply in Hinglish. If they ask in English, reply in English. Do not force English if the user types in another language."
@@ -342,43 +348,52 @@ def chat():
                     yield f"data: {json.dumps({'user_transcription': query_text})}\n\n"
 
                 CHAT_MODELS = [
-                    "gemini-2.0-flash",      # Fast & stable primary
-                    "gemini-2.5-flash",      # Secondary
-                    "gemini-3.1-flash-lite", # Fallback
+                    "gemini-3.1-flash-lite", # Primary (500 RPD free tier!)
+                    "gemini-3.5-flash-lite", # Secondary (500 RPD free tier!)
+                    "gemini-1.5-flash"       # Fallback
                 ]
 
-                response = None
                 successful_model = None
 
                 for model_name in CHAT_MODELS:
                     try:
-                        print(f"Attempting to query chat model: models/{model_name}...")
-                        model = genai.GenerativeModel(
-                            model_name=f"models/{model_name}",
-                            system_instruction=system_instruction
-                        )
-                        chat = model.start_chat(history=formatted_history)
-                        response = chat.send_message(query_text, stream=True)
+                        print(f"[RENDER-LOG] Connecting chat model: models/{model_name}...")
                         
-                        # Verify model response streaming behaves correctly
-                        response_iterator = iter(response)
-                        first_chunk = next(response_iterator)
+                        # Build SDK history types
+                        types_history = []
+                        for h in formatted_history:
+                            types_history.append(types.Content(
+                                role=h["role"],
+                                parts=[types.Part.from_text(text=h["parts"][0])]
+                            ))
+
+                        chat = client.chats.create(
+                            model=f"models/{model_name}",
+                            config=types.GenerateContentConfig(
+                                system_instruction=system_instruction
+                            ),
+                            history=types_history
+                        )
+                        
+                        stream = chat.send_message_stream(query_text)
+                        
+                        # Verify model response streaming begins
+                        stream_iter = iter(stream)
+                        first_chunk = next(stream_iter)
                         
                         successful_model = model_name
-                        print(f"Successfully connected to models/{model_name}!")
+                        print(f"[RENDER-LOG] Successfully connected to models/{model_name}!")
                         
-                        # Yield first chunk content
                         if first_chunk.text:
                             yield f"data: {json.dumps({'reply': first_chunk.text})}\n\n"
                         
-                        # Stream successive chunks to client
-                        for chunk in response_iterator:
+                        for chunk in stream_iter:
                             if chunk.text:
                                 yield f"data: {json.dumps({'reply': chunk.text})}\n\n"
                         
-                        break  # Stream execution complete, exit fallback loop
+                        break  # Streaming completed cleanly
                     except Exception as model_err:
-                        print(f"Model models/{model_name} failed: {model_err}")
+                        print(f"[RENDER-LOG] Model models/{model_name} failed: {model_err}")
                         continue
 
                 if not successful_model:
@@ -400,16 +415,14 @@ def chat():
 
     except Exception as e:
         import traceback
-        print("\n=== Backend Exception Occurred ===")
+        print("\n[RENDER-LOG] === Backend Exception Occurred ===")
         traceback.print_exc()
         print("===================================\n")
         return jsonify({"error": str(e)}), 500
 
 # TTS Engine configs: Gemini (Primary) -> gTTS (Secondary) -> browser Web Speech API (Fallback)
-# Map language parameters to gTTS language keys (English maps for Hinglish transliterations)
 GTTS_LANG_MAP = {"en": "en", "hn": "en", "hi": "hi"}
 
-# Gemini TTS model fallback chain (newest first)
 GEMINI_TTS_MODELS = [
     "models/gemini-3.1-flash-tts-preview",
     "models/gemini-2.5-flash-preview-tts",
@@ -427,38 +440,42 @@ def speak():
 
     # --- Tier 1: Gemini Native Speech Generation ---
     try:
-        print("[TTS] Attempting Gemini native TTS...")
+        print("[RENDER-LOG] Attempting Gemini native TTS...")
         for model_name in GEMINI_TTS_MODELS:
             try:
-                model = genai.GenerativeModel(model_name=model_name)
-                config = {
-                    "response_modalities": ["AUDIO"],
-                    "speech_config": {
-                        "voice_config": {
-                            "prebuilt_voice_config": {"voice_name": "Puck"}
-                        }
-                    }
-                }
-                response = model.generate_content(text, generation_config=config)
+                config = types.GenerateContentConfig(
+                    response_modalities=["AUDIO"],
+                    speech_config=types.SpeechConfig(
+                        voice_config=types.VoiceConfig(
+                            prebuilt_voice_config=types.PrebuiltVoiceConfig(voice_name="Puck")
+                        )
+                    )
+                )
+                response = client.models.generate_content(
+                    model=model_name,
+                    contents=text,
+                    config=config
+                )
                 audio_b64 = ""
-                for part in response.candidates[0].content.parts:
-                    if hasattr(part, 'inline_data') and part.inline_data:
-                        audio_b64 = base64.b64encode(part.inline_data.data).decode('utf-8')
-                        break
+                if response.candidates and response.candidates[0].content:
+                    for part in response.candidates[0].content.parts:
+                        if hasattr(part, 'inline_data') and part.inline_data:
+                            audio_b64 = base64.b64encode(part.inline_data.data).decode('utf-8')
+                            break
                 if audio_b64:
-                    print(f"[TTS] Gemini TTS success using {model_name}")
+                    print(f"[RENDER-LOG] Gemini TTS success using {model_name}")
                     return jsonify({"audio": audio_b64, "format": "pcm", "engine": f"gemini:{model_name}"})
             except Exception as gem_err:
-                print(f"[TTS] Gemini model {model_name} failed: {gem_err}")
+                print(f"[RENDER-LOG] Gemini model {model_name} failed: {gem_err}")
                 continue
         raise Exception("All Gemini TTS models failed or quota exceeded")
     except Exception as gemini_fail:
-        print(f"[TTS] Gemini TTS unavailable: {gemini_fail}. Falling back to gTTS...")
+        print(f"[RENDER-LOG] Gemini TTS unavailable: {gemini_fail}. Falling back to gTTS...")
 
     # --- Tier 2: gTTS Fallback ---
     try:
         gtts_lang = GTTS_LANG_MAP.get(lang, "en")
-        print(f"[TTS] Using gTTS fallback | lang: {lang} → gtts_lang: {gtts_lang}")
+        print(f"[RENDER-LOG] Using gTTS fallback | lang: {lang} → gtts_lang: {gtts_lang}")
         tts = gTTS(text=text, lang=gtts_lang)
         fp = io.BytesIO()
         tts.write_to_fp(fp)
@@ -466,7 +483,7 @@ def speak():
         audio_b64 = base64.b64encode(fp.read()).decode('utf-8')
         return jsonify({"audio": audio_b64, "format": "mp3", "engine": f"gtts:{gtts_lang}"})
     except Exception as gtts_fail:
-        print(f"[TTS] gTTS also failed: {gtts_fail}. Signalling browser fallback...")
+        print(f"[RENDER-LOG] gTTS also failed: {gtts_fail}. Signalling browser fallback...")
 
     # --- Tier 3: Browser Fallback Notification ---
     return jsonify({"error": "browser_fallback", "lang": lang}), 503
@@ -485,24 +502,25 @@ def generate_title():
             "Generate a very short, concise title (strictly 3 to 5 words) summarizing the following Q&A exchange between a user and an RTO Assistant. "
             "Do NOT include any quotation marks, markdown styling, prefixes like 'Title:', or terminal punctuation in the output. "
             "Return ONLY the plain title text. "
-            "Crucial Rule: Generate the title in the same language and script as the user query (e.g., if the query is in Hindi/Hinglish, write it in Hindi/Hinglish).\n\n"
+            "Crucial Rule: Generate the title in the same language and script as the user query.\n\n"
             f"User Query: {question}\n"
             f"Assistant Reply: {reply}\n\n"
             "Summary Title:"
         )
 
-        model = genai.GenerativeModel(model_name="models/gemini-3.1-flash-lite")
-        response = model.generate_content(prompt)
+        response = client.models.generate_content(
+            model="models/gemini-3.1-flash-lite",
+            contents=prompt
+        )
         title = response.text.strip().replace('"', '').replace("'", "")
         
-        # Fallback to default name if generation fails or is too long
         if not title or len(title) > 60:
             title = "New Chat"
             
-        print(f"[Title Generator] Generated title: '{title}'")
+        print(f"[RENDER-LOG] Generated title: '{title}'")
         return jsonify({"title": title})
     except Exception as err:
-        print(f"[Title Generator] Error generating title: {err}")
+        print(f"[RENDER-LOG] Error generating title: {err}")
         return jsonify({"title": "New Chat"}), 200
 
 if __name__ == "__main__":
