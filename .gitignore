@@ -14,9 +14,8 @@ backend/.env
 api_key.txt
 backend/api_key.txt
 
-# Ignore local tunnel logs and auto-generated backend config
+# Ignore local tunnel logs
 localtunnel*.txt
-backend_url.js
 
 # Do NOT ignore the vector database so it deploys with Render
 !backend/rto_vector_db/

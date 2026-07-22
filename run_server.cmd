@@ -103,5 +103,5 @@ powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 5000 -ErrorActio
 
 del localtunnel_fe.txt >nul 2>&1
 del localtunnel_be.txt >nul 2>&1
-del backend_url.js >nul 2>&1
+python generate_tunnel_config.py >nul 2>&1
 exit

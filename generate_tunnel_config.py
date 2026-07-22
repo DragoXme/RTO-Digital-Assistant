@@ -16,12 +16,13 @@ def generate_config():
         except Exception as e:
             print(f"[Tunnel Config] Error parsing tunnel log: {e}")
     
-    # If file doesn't exist or url not found, clear backend_url.js
-    if os.path.exists("backend_url.js"):
-        try:
-            os.remove("backend_url.js")
-        except Exception:
-            pass
+    # If localtunnel file doesn't exist or url not found, reset backend_url.js to null default
+    try:
+        with open("backend_url.js", "w", encoding="utf-8") as f:
+            f.write("// Default backend tunnel config (empty in production)\nwindow.RTO_TUNNEL_BACKEND = null;\n")
+        print("[Tunnel Config] Reset backend_url.js to production default (null).")
+    except Exception as e:
+        print(f"[Tunnel Config] Error resetting config: {e}")
 
 if __name__ == "__main__":
     generate_config()
