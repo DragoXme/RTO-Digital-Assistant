@@ -1573,6 +1573,13 @@ async function openChatSession(chatId) {
     if (isGenerating) return;
 
     try {
+        console.log(`[BROWSER-LOG] Opening saved chat session ID: ${chatId}`);
+        
+        // Auto-close mobile sidebar drawer when selecting a chat on mobile
+        if (window.innerWidth <= 900) {
+            toggleSidebar(false);
+        }
+
         const messages = await RTOChatDB.getMessages(chatId);
         
         // 1. Update active chat ID
@@ -1704,8 +1711,14 @@ async function autoGenerateChatTitle(chatId, userMsgText, assistantReplyText) {
 
 // Start a fresh chat session (clears history, UI feed, and restores welcome screen)
 function startNewChat() {
+    console.log("[BROWSER-LOG] Starting new chat session...");
     if (isGenerating) {
         abortGeneration();
+    }
+    
+    // Auto-close mobile sidebar drawer when starting a new chat on mobile
+    if (window.innerWidth <= 900) {
+        toggleSidebar(false);
     }
     
     // 1. Reset active chat tracking ID
@@ -1826,6 +1839,10 @@ async function handleFormSubmit(event) {
     }
     
     try {
+        console.log(`[BROWSER-LOG] Submitting chat query to: ${API_BASE_URL}/api/chat`);
+        console.log(`[BROWSER-LOG] Request payload -> Tone: ${currentTone}, Lang: ${currentLanguage}, History turns: ${conversationHistory.length}`);
+        const startTime = performance.now();
+
         // Send request to Flask API backend
         const response = await fetch(`${API_BASE_URL}/api/chat`, {
             method: 'POST',
@@ -1840,6 +1857,9 @@ async function handleFormSubmit(event) {
             }),
             signal: signal
         });
+
+        const elapsedMs = Math.round(performance.now() - startTime);
+        console.log(`[BROWSER-LOG] Response received in ${elapsedMs}ms | Status: ${response.status} ${response.statusText} | Content-Type: ${response.headers.get('content-type')}`);
         
         // Add user query to conversation history for future turns
         addToHistory('user', userQuery);
