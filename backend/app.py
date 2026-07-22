@@ -7,12 +7,19 @@ from gtts import gTTS
 import chromadb
 from google import genai
 from google.genai import types
-from flask import Flask, request, jsonify, Response
+from flask import Flask, request, jsonify, Response, stream_with_context
 from flask_cors import CORS
 from chromadb.utils import embedding_functions
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for cross-origin frontend requests
+
+@app.after_request
+def add_cors_headers(response):
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    response.headers['Access-Control-Allow-Headers'] = 'Content-Type, Authorization'
+    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
+    return response
 
 # Load Gemini API credentials
 GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY")
@@ -402,9 +409,9 @@ def chat():
             except Exception as stream_err:
                 yield f"data: {json.dumps({'error': str(stream_err)})}\n\n"
 
-        # 5. Return SSE response stream without buffering and with explicit CORS headers
+        # 5. Return SSE response stream wrapped in stream_with_context without buffering
         return Response(
-            generate(),
+            stream_with_context(generate()),
             mimetype='text/event-stream',
             headers={
                 'X-Accel-Buffering': 'no',
