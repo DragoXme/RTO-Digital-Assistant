@@ -1,1 +1,1 @@
-window.RTO_TUNNEL_BACKEND = "https://icy-apes-attend.loca.lt";
+window.RTO_TUNNEL_BACKEND = "https://hot-bars-show.loca.lt";
