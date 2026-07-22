@@ -3,4 +3,4 @@ services:
     name: rto-assistant-backend
     env: python
     buildCommand: pip install -r backend/requirements.txt
-    startCommand: gunicorn --bind 0.0.0.0:$PORT --chdir backend --worker-class gthread --threads 8 --timeout 300 --keep-alive 15 app:app
+    startCommand: gunicorn --bind 0.0.0.0:$PORT --chdir backend --worker-class gthread --workers 1 --threads 8 --timeout 300 --keep-alive 15 app:app
