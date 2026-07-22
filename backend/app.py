@@ -53,7 +53,19 @@ collection = chroma_client.get_or_create_collection(name="rto_rules", embedding_
 
 @app.route("/", methods=["GET"])
 def home():
-    html_content = """
+    # Check if a dynamic frontend localtunnel URL is active
+    frontend_target_url = "https://rto-digital-assistant.vercel.app/"
+    fe_file = os.path.join(os.path.dirname(__file__), "tunnel_fe_url.txt")
+    if os.path.exists(fe_file):
+        try:
+            with open(fe_file, "r", encoding="utf-8") as f:
+                active_fe_url = f.read().strip()
+                if active_fe_url:
+                    frontend_target_url = active_fe_url
+        except Exception:
+            pass
+
+    html_content = f"""
     <!DOCTYPE html>
     <html lang="en">
     <head>
@@ -64,8 +76,8 @@ def home():
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
         <style>
-            * { box-sizing: border-box; margin: 0; padding: 0; }
-            body {
+            * {{ box-sizing: border-box; margin: 0; padding: 0; }}
+            body {{
                 font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
                 background: #0f172a;
                 color: #f8fafc;
@@ -77,8 +89,8 @@ def home():
                 background-image: 
                     radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.15) 0px, transparent 50%),
                     radial-gradient(at 100% 100%, rgba(14, 165, 233, 0.15) 0px, transparent 50%);
-            }
-            .card {
+            }}
+            .card {{
                 background: rgba(30, 41, 59, 0.7);
                 backdrop-filter: blur(16px);
                 border: 1px solid rgba(255, 255, 255, 0.1);
@@ -88,8 +100,8 @@ def home():
                 width: 100%;
                 box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
                 text-align: center;
-            }
-            .badge {
+            }}
+            .badge {{
                 display: inline-flex;
                 align-items: center;
                 gap: 8px;
@@ -101,35 +113,35 @@ def home():
                 font-size: 0.85rem;
                 font-weight: 500;
                 margin-bottom: 1.5rem;
-            }
-            .dot {
+            }}
+            .dot {{
                 width: 8px;
                 height: 8px;
                 background-color: #22c55e;
                 border-radius: 50%;
                 box-shadow: 0 0 10px #22c55e;
                 animation: pulse 2s infinite;
-            }
-            @keyframes pulse {
-                0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
-                70% { transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }
-                100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
-            }
-            h1 {
+            }}
+            @keyframes pulse {{
+                0% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }}
+                70% {{ transform: scale(1); box-shadow: 0 0 0 10px rgba(34, 197, 94, 0); }}
+                100% {{ transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }}
+            }}
+            h1 {{
                 font-size: 1.75rem;
                 font-weight: 600;
                 margin-bottom: 0.75rem;
                 background: linear-gradient(135deg, #ffffff 0%, #cbd5e1 100%);
                 -webkit-background-clip: text;
                 -webkit-text-fill-color: transparent;
-            }
-            p {
+            }}
+            p {{
                 color: #94a3b8;
                 font-size: 0.95rem;
                 line-height: 1.6;
                 margin-bottom: 2rem;
-            }
-            .btn {
+            }}
+            .btn {{
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -144,12 +156,12 @@ def home():
                 border-radius: 14px;
                 box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.4);
                 transition: all 0.25s ease;
-            }
-            .btn:hover {
+            }}
+            .btn:hover {{
                 transform: translateY(-2px);
                 box-shadow: 0 15px 30px -5px rgba(37, 99, 235, 0.6);
-            }
-            .features {
+            }}
+            .features {{
                 display: grid;
                 grid-template-columns: repeat(2, 1fr);
                 gap: 10px;
@@ -157,14 +169,14 @@ def home():
                 padding-top: 1.5rem;
                 border-top: 1px solid rgba(255, 255, 255, 0.08);
                 text-align: left;
-            }
-            .feature-item {
+            }}
+            .feature-item {{
                 font-size: 0.8rem;
                 color: #cbd5e1;
                 display: flex;
                 align-items: center;
                 gap: 6px;
-            }
+            }}
         </style>
     </head>
     <body>
@@ -175,7 +187,7 @@ def home():
             </div>
             <h1>RTO Digital Assistant Server</h1>
             <p>The backend service is online and ready. All AI vector RAG features, speech engines, and Gemini 3.1 streaming models are running.</p>
-            <a href="https://rto-digital-assistant.vercel.app/" class="btn">
+            <a href="{frontend_target_url}" class="btn">
                 Launch Assistant Web App 🚀
             </a>
             <div class="features">
