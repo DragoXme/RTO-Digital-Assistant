@@ -48,25 +48,60 @@ goto :started
 ping 127.0.0.1 -n 4 >nul
 
 :: Clean up old files
-del localtunnel.txt >nul 2>&1
+del localtunnel_fe.txt >nul 2>&1
+del localtunnel_be.txt >nul 2>&1
 
 echo.
+echo Starting Localtunnel to generate public web URLs...
+start /b cmd /c "npx --yes localtunnel --port 8000 > localtunnel_fe.txt 2>&1"
+start /b cmd /c "npx --yes localtunnel --port 5000 > localtunnel_be.txt 2>&1"
+
+:: Wait 4 seconds for localtunnel to acquire URLs
+ping 127.0.0.1 -n 5 >nul
+
+:: Automatically extract backend tunnel URL and write backend_url.js for frontend auto-discovery
+if exist backend\venv\Scripts\python.exe (
+    backend\venv\Scripts\python generate_tunnel_config.py >nul 2>&1
+) else (
+    python generate_tunnel_config.py >nul 2>&1
+)
+
+echo.
+echo =========================================================
+echo SERVERS AND PUBLIC TUNNELS ARE LIVE!
+echo =========================================================
+echo.
+echo  1. Local Link (Open on your laptop):
+echo     http://localhost:8000
+echo.
+echo  2. Local Backend API Link:
+echo     http://localhost:5000
+echo.
 echo ---------------------------------------------------------
-echo Servers are successfully running!
+echo  3. PUBLIC INTERNET LINK (Share with anyone / test on phone):
+if exist localtunnel_fe.txt (
+    type localtunnel_fe.txt
+) else (
+    echo    (Connecting localtunnel...)
+)
 echo.
-echo  Front-end Link (Open in browser):
-echo    http://localhost:8000
-echo.
-echo  Chatbot API Link:
-echo    http://localhost:5000
+echo  4. PUBLIC BACKEND API LINK:
+if exist localtunnel_be.txt (
+    type localtunnel_be.txt
+) else (
+    echo    (Connecting localtunnel...)
+)
 echo ---------------------------------------------------------
 echo.
-echo -^> Press ANY KEY in this window to stop and close.
+echo -^> Press ANY KEY in this window to stop all servers and close tunnels.
 pause >nul
 
 echo.
-echo Stopping web servers running on ports 8000 and 5000...
+echo Stopping web servers and localtunnels...
 powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 8000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 powershell -NoProfile -Command "Get-NetTCPConnection -LocalPort 5000 -ErrorAction SilentlyContinue | ForEach-Object { Stop-Process -Id $_.OwningProcess -Force -ErrorAction SilentlyContinue }"
 
+del localtunnel_fe.txt >nul 2>&1
+del localtunnel_be.txt >nul 2>&1
+del backend_url.js >nul 2>&1
 exit

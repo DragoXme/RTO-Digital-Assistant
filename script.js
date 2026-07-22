@@ -2,9 +2,28 @@
    RTO Digital Assistant - Interactive Client Logic & Accessibility
    ========================================================================== */
 
-const API_BASE_URL = window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1'
-    ? 'http://localhost:5000'
-    : 'https://rto-assistant-backend.onrender.com';
+// Allow dynamic custom backend URL override (e.g., via ?backend=... query parameter or localStorage)
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const backendParam = urlParams.get('backend');
+    if (backendParam) {
+        localStorage.setItem('rto-custom-backend-url', backendParam.replace(/\/$/, ''));
+    }
+})();
+
+const API_BASE_URL = (function() {
+    if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1') {
+        return 'http://localhost:5000';
+    }
+    if (window.RTO_TUNNEL_BACKEND) {
+        return window.RTO_TUNNEL_BACKEND;
+    }
+    const customBackend = localStorage.getItem('rto-custom-backend-url');
+    if (customBackend) {
+        return customBackend;
+    }
+    return 'https://rto-assistant-backend.onrender.com';
+})();
 
 // Global State
 let currentLanguage = 'en';
@@ -1099,20 +1118,22 @@ async function submitVoiceQuery(base64Audio, mimeType) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
             let fullReplyText = "";
+            let streamBuffer = "";
             
-            // Read the stream chunk by chunk
+            // Read and parse streaming chunks
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
                 
-                const chunkString = decoder.decode(value, { stream: true });
+                streamBuffer += decoder.decode(value, { stream: true });
+                const lines = streamBuffer.split('\n');
+                streamBuffer = lines.pop() || "";
                 
-                // Parse SSE packets: data: {"reply": "..."}\n\n or {"user_transcription": "..."}
-                const lines = chunkString.split('\n');
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
                             const jsonStr = line.slice(6).trim();
+                            if (!jsonStr) continue;
                             const data = JSON.parse(jsonStr);
                             
                             if (data.user_transcription) {
@@ -1833,20 +1854,22 @@ async function handleFormSubmit(event) {
             const reader = response.body.getReader();
             const decoder = new TextDecoder("utf-8");
             let fullReplyText = "";
+            let streamBuffer = "";
             
-            // Read the stream chunk by chunk
+            // Read and parse streaming chunks
             while (true) {
                 const { value, done } = await reader.read();
                 if (done) break;
                 
-                const chunkString = decoder.decode(value, { stream: true });
+                streamBuffer += decoder.decode(value, { stream: true });
+                const lines = streamBuffer.split('\n');
+                streamBuffer = lines.pop() || "";
                 
-                // Parse SSE packets: data: {"reply": "..."}\n\n
-                const lines = chunkString.split('\n');
                 for (const line of lines) {
                     if (line.startsWith('data: ')) {
                         try {
                             const jsonStr = line.slice(6).trim();
+                            if (!jsonStr) continue;
                             const data = JSON.parse(jsonStr);
                             if (data.reply) {
                                 fullReplyText += data.reply;
